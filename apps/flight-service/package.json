@@ -1,0 +1,29 @@
+{
+  "name": "flight-service",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "nest build flight-service",
+    "start": "nest start flight-service",
+    "start:dev": "nest start flight-service --watch",
+    "start:debug": "nest start flight-service --debug --watch",
+    "start:prod": "node ../../dist/apps/flight-service/main"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.4.5",
+    "@nestjs/config": "^3.2.3",
+    "@nestjs/core": "^10.4.5",
+    "@nestjs/platform-express": "^10.4.5",
+    "@t-amada/common": "workspace:*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "dotenv": "^16.4.5",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.7.5",
+    "typescript": "^5.6.3"
+  }
+}
