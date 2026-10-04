@@ -8,6 +8,13 @@
       "when": 1791136848614,
       "tag": "0000_soft_kylun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791144641071,
+      "tag": "0001_abnormal_scarecrow",
+      "breakpoints": true
     }
   ]
 }

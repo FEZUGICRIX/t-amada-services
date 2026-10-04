@@ -8,6 +8,13 @@
       "when": 1791136846369,
       "tag": "0000_illegal_cable",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791144641071,
+      "tag": "0001_loose_mongoose",
+      "breakpoints": true
     }
   ]
 }

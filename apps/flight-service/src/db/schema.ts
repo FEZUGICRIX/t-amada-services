@@ -9,7 +9,7 @@ export const flightBookingStatusEnum = pgEnum('flight_booking_status', [
 
 export const flights = pgTable('flights', {
   id: uuid('id').defaultRandom().primaryKey(),
-  flightNumber: varchar('flight_number', { length: 50 }).notNull(),
+  flightNumber: varchar('flight_number', { length: 50 }).notNull().unique(),
   availableSeats: integer('available_seats').notNull(),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 });

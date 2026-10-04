@@ -9,7 +9,7 @@ export const insuranceBookingStatusEnum = pgEnum('insurance_booking_status', [
 
 export const insurancePolicies = pgTable('insurance_policies', {
   id: uuid('id').defaultRandom().primaryKey(),
-  title: varchar('title', { length: 255 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull().unique(),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 });
 

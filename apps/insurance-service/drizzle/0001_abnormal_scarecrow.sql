@@ -1,0 +1,1 @@
+ALTER TABLE "insurance_policies" ADD CONSTRAINT "insurance_policies_title_unique" UNIQUE("title");

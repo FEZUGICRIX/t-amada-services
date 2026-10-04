@@ -8,6 +8,13 @@
       "when": 1791136836234,
       "tag": "0000_giant_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791144641072,
+      "tag": "0001_motionless_excalibur",
+      "breakpoints": true
     }
   ]
 }

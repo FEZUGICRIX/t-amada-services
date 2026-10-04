@@ -9,7 +9,7 @@ export const hotelBookingStatusEnum = pgEnum('hotel_booking_status', [
 
 export const hotels = pgTable('hotels', {
   id: uuid('id').defaultRandom().primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull().unique(),
   availableRooms: integer('available_rooms').notNull(),
   pricePerNight: numeric('price_per_night', { precision: 10, scale: 2 }).notNull(),
 });

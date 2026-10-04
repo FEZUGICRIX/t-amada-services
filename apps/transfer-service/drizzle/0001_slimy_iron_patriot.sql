@@ -1,0 +1,1 @@
+ALTER TABLE "vehicles" ADD CONSTRAINT "vehicles_model_unique" UNIQUE("model");

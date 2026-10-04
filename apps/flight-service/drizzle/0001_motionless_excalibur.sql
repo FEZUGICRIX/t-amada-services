@@ -1,0 +1,1 @@
+ALTER TABLE "flights" ADD CONSTRAINT "flights_flight_number_unique" UNIQUE("flight_number");

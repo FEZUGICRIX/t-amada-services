@@ -9,7 +9,7 @@ export const transferBookingStatusEnum = pgEnum('transfer_booking_status', [
 
 export const vehicles = pgTable('vehicles', {
   id: uuid('id').defaultRandom().primaryKey(),
-  model: varchar('model', { length: 255 }).notNull(),
+  model: varchar('model', { length: 255 }).notNull().unique(),
   capacity: integer('capacity').notNull(),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 });
