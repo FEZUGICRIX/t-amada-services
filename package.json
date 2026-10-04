@@ -2,7 +2,7 @@
   "name": "t-travel-booking-orchestrator",
   "version": "1.0.0",
   "private": true,
-  "description": "T-Travel Booking Orchestrator monorepo",
+  "description": "T-Travel Booking Services monorepo (Saga Participants)",
   "scripts": {
     "build:all": "nest build flight-service && nest build hotel-service && nest build insurance-service && nest build transfer-service",
     "build:common": "pnpm --filter @t-amada/common run build",
