@@ -13,7 +13,13 @@
     "start:all": "pnpm --parallel run start:dev",
     "lint": "eslint \"{apps,libs}/**/*.ts\" --fix",
     "format": "prettier --write \"{apps,libs}/**/*.ts\"",
-    "test": "pnpm --recursive run test"
+    "test": "pnpm --recursive run test",
+    "db:generate:all": "pnpm --filter \"./apps/*\" run db:generate",
+    "db:push:all": "pnpm --filter \"./apps/*\" run db:push",
+    "studio:flight": "pnpm --filter @t-amada/flight-service run db:studio",
+    "studio:hotel": "pnpm --filter @t-amada/hotel-service run db:studio --port 4984",
+    "studio:insurance": "pnpm --filter @t-amada/insurance-service run db:studio --port 4985",
+    "studio:transfer": "pnpm --filter @t-amada/transfer-service run db:studio --port 4986"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.5",
