@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-export interface HealthCheckResult {
+export interface HealthResponseDto {
   status: 'ok';
   service: string;
   timestamp: string;
@@ -8,7 +8,7 @@ export interface HealthCheckResult {
 
 @Injectable()
 export class AppService {
-  getHealth(): HealthCheckResult {
+  getHealth(): HealthResponseDto {
     return {
       status: 'ok',
       service: process.env.SERVICE_NAME || 'flight-service',

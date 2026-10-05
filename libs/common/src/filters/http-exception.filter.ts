@@ -1,7 +1,7 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
   Logger,
@@ -18,29 +18,34 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    const isHttpException = exception instanceof HttpException;
+    const status = isHttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
     let message: string | string[] = 'Internal server error';
+    let error = 'Internal Server Error';
 
-    if (exception instanceof HttpException) {
-      status = exception.getStatus();
+    if (isHttpException) {
       const res = exception.getResponse();
-
       if (typeof res === 'string') {
         message = res;
+        error = exception.name;
       } else if (typeof res === 'object' && res !== null) {
-        const resObj = res as Record<string, any>;
-        message = resObj.message || exception.message || 'Http Exception';
+        const body = res as Record<string, unknown>;
+        message = (body.message as string | string[]) || exception.message;
+        error = (body.error as string) || exception.name;
       }
-    } else if (exception instanceof Error) {
-      this.logger.error(`Unhandled error: ${exception.message}`, exception.stack);
-      message = exception.message;
+    } else {
+      const err = exception instanceof Error ? exception : new Error(String(exception));
+      this.logger.error(`Unhandled error: ${err.message}`, err.stack);
     }
 
     const errorResponse: ErrorResponseDto = {
+      success: false,
       statusCode: status,
       message,
+      error,
       timestamp: new Date().toISOString(),
-      path: request.url,
+      path: request?.url ?? '',
     };
 
     response.status(status).json(errorResponse);
