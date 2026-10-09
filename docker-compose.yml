@@ -32,6 +32,7 @@ services:
       NODE_ENV: production
       PORT: 3001
       SERVICE_NAME: flight-service
+      API_PREFIX: api/v1/flight
       DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/flight_db
     depends_on:
       postgres:
@@ -51,6 +52,7 @@ services:
       NODE_ENV: production
       PORT: 3002
       SERVICE_NAME: hotel-service
+      API_PREFIX: api/v1/hotel
       DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/hotel_db
     depends_on:
       postgres:
@@ -70,6 +72,7 @@ services:
       NODE_ENV: production
       PORT: 3003
       SERVICE_NAME: insurance-service
+      API_PREFIX: api/v1/insurance
       DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/insurance_db
     depends_on:
       postgres:
@@ -89,6 +92,7 @@ services:
       NODE_ENV: production
       PORT: 3004
       SERVICE_NAME: transfer-service
+      API_PREFIX: api/v1/transfer
       DATABASE_URL: postgres://postgres:postgrespassword@postgres:5432/transfer_db
     depends_on:
       postgres:

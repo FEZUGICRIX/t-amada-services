@@ -13,6 +13,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('TransferService');
   const reflector = app.get(Reflector);
+  const configService = app.get(ConfigService);
+
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1/transfer');
+
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: ['health', 'health/(.*)'],
+  });
 
   // Global pipes & filters & interceptors from libs/common
   app.useGlobalPipes(
@@ -24,18 +31,18 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ChaosInterceptor(), new TransformResponseInterceptor(reflector));
 
-  // Swagger setup at /api/docs
+  // Swagger setup at ${apiPrefix}/docs
   setupSwagger(app, {
     title: 'Transfer Service API',
-    routePrefix: 'api/docs',
+    routePrefix: `${apiPrefix}/docs`,
   });
 
-  const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3004);
 
   await app.listen(port);
   logger.log(`TransferService is running on port ${port}`);
-  logger.log(`Swagger documentation available at http://localhost:${port}/api/docs`);
+  logger.log(`Health check available at http://localhost:${port}/health`);
+  logger.log(`Swagger documentation available at http://localhost:${port}/${apiPrefix}/docs`);
 }
 
 bootstrap();

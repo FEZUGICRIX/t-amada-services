@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3001),
+  SERVICE_NAME: z.string().default('flight-service'),
+  API_PREFIX: z.string().default('api/v1/flight'),
   DATABASE_URL: z.string().url(),
 });
 
