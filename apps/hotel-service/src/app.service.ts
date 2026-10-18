@@ -4,6 +4,8 @@ import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { hotelBookings, hotels } from './db/schema';
 import { BookingResponseDto } from './dto/booking-response.dto';
+import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
+import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
@@ -80,6 +82,48 @@ export class AppService {
         bookingReference: booking.bookingReference,
         status: booking.status,
         createdAt: booking.createdAt,
+      };
+    });
+  }
+
+  async cancelHotel(dto: CancelBookingDto): Promise<CancelBookingResponseDto> {
+    return this.db.transaction(async (tx) => {
+      const [booking] = await tx
+        .select()
+        .from(hotelBookings)
+        .where(eq(hotelBookings.id, dto.bookingId))
+        .limit(1);
+
+      if (!booking) {
+        throw new NotFoundException('Booking not found');
+      }
+
+      if (booking.status === BookingStatus.CANCELLED) {
+        return {
+          id: booking.id,
+          status: booking.status,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      await tx
+        .update(hotels)
+        .set({
+          availableRooms: sql`${hotels.availableRooms} + 1`,
+        })
+        .where(eq(hotels.id, booking.hotelId));
+
+      await tx
+        .update(hotelBookings)
+        .set({
+          status: BookingStatus.CANCELLED,
+        })
+        .where(eq(hotelBookings.id, booking.id));
+
+      return {
+        id: booking.id,
+        status: BookingStatus.CANCELLED,
+        updatedAt: new Date().toISOString(),
       };
     });
   }

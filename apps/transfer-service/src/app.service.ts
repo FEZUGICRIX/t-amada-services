@@ -4,6 +4,8 @@ import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { transferBookings, vehicles } from './db/schema';
 import { BookingResponseDto } from './dto/booking-response.dto';
+import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
+import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { SearchTransfersDto } from './dto/search-transfers.dto';
 import { TransferResponseDto } from './dto/transfer-response.dto';
@@ -88,6 +90,48 @@ export class AppService {
         bookingReference: booking.bookingReference,
         status: booking.status,
         createdAt: booking.createdAt,
+      };
+    });
+  }
+
+  async cancelTransfer(dto: CancelBookingDto): Promise<CancelBookingResponseDto> {
+    return this.db.transaction(async (tx) => {
+      const [booking] = await tx
+        .select()
+        .from(transferBookings)
+        .where(eq(transferBookings.id, dto.bookingId))
+        .limit(1);
+
+      if (!booking) {
+        throw new NotFoundException('Booking not found');
+      }
+
+      if (booking.status === BookingStatus.CANCELLED) {
+        return {
+          id: booking.id,
+          status: booking.status,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      await tx
+        .update(vehicles)
+        .set({
+          capacity: sql`${vehicles.capacity} + 1`,
+        })
+        .where(eq(vehicles.id, booking.vehicleId));
+
+      await tx
+        .update(transferBookings)
+        .set({
+          status: BookingStatus.CANCELLED,
+        })
+        .where(eq(transferBookings.id, booking.id));
+
+      return {
+        id: booking.id,
+        status: BookingStatus.CANCELLED,
+        updatedAt: new Date().toISOString(),
       };
     });
   }

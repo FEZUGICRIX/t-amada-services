@@ -46,3 +46,35 @@ export class BaseBookingResponseDto {
   })
   createdAt: Date | string;
 }
+
+export class BaseCancelBookingDto {
+  @ApiProperty({
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    description: 'UUID of the booking to cancel',
+  })
+  @IsUUID(4, { message: 'bookingId must be a UUID' })
+  @IsNotEmpty({ message: 'bookingId should not be empty' })
+  @IsString()
+  bookingId: string;
+}
+
+export class BaseCancelBookingResponseDto {
+  @ApiProperty({
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    description: 'UUID of the booking',
+  })
+  id: string;
+
+  @ApiProperty({
+    enum: BookingStatus,
+    example: BookingStatus.CANCELLED,
+    description: 'Booking status',
+  })
+  status: BookingStatus;
+
+  @ApiProperty({
+    example: '2026-10-19T18:00:00.000Z',
+    description: 'Booking update timestamp',
+  })
+  updatedAt: Date | string;
+}

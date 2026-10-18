@@ -9,6 +9,8 @@ import {
 } from '@nestjs/swagger';
 import { AppService, HealthResponseDto } from './app.service';
 import { BookingResponseDto } from './dto/booking-response.dto';
+import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
+import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { InsuranceResponseDto } from './dto/insurance-response.dto';
 import { SearchInsurancesDto } from './dto/search-insurances.dto';
@@ -34,15 +36,25 @@ export class AppController {
 
   @Post('book')
   @ApiTags('Bookings')
-  @ApiOperation({ summary: 'Бронирование ресурса (прямой шаг Saga)' })
+  @ApiOperation({ summary: 'Resource booking (forward Saga step)' })
   @ApiOkResponse({
     type: BookingResponseDto,
-    description: 'Успешное создание брони (плоский объект)',
+    description: 'Booking successfully created (flat object)',
   })
-  @ApiBadRequestResponse({ description: 'Ошибка валидации DTO (400)' })
-  @ApiNotFoundResponse({ description: 'Ресурс не найден (404)' })
-  @ApiConflictResponse({ description: 'Ресурс занят / нет мест (409)' })
+  @ApiBadRequestResponse({ description: 'DTO validation error (400)' })
+  @ApiNotFoundResponse({ description: 'Resource not found (404)' })
+  @ApiConflictResponse({ description: 'Resource unavailable / policy conflict (409)' })
   async book(@Body() dto: CreateBookingDto): Promise<BookingResponseDto> {
     return this.appService.bookInsurance(dto);
+  }
+
+  @Post('cancel')
+  @ApiTags('Bookings')
+  @ApiOperation({ summary: 'Compensating booking cancellation step (Saga Cancel)' })
+  @ApiOkResponse({ type: CancelBookingResponseDto })
+  @ApiNotFoundResponse({ description: 'Booking not found (404)' })
+  @ApiBadRequestResponse({ description: 'Input validation error (400)' })
+  async cancel(@Body() dto: CancelBookingDto): Promise<CancelBookingResponseDto> {
+    return this.appService.cancelInsurance(dto);
   }
 }
