@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, gte, ilike, lte, SQL } from 'drizzle-orm';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
+import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
-import { hotels } from './db/schema';
+import { hotelBookings, hotels } from './db/schema';
+import { BookingResponseDto } from './dto/booking-response.dto';
+import { CreateBookingDto } from './dto/create-booking.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
 
@@ -42,5 +45,42 @@ export class AppService {
       })
       .from(hotels)
       .where(and(...conditions));
+  }
+
+  async bookHotel(dto: CreateBookingDto): Promise<BookingResponseDto> {
+    return this.db.transaction(async (tx) => {
+      const [hotel] = await tx.select().from(hotels).where(eq(hotels.id, dto.resourceId)).limit(1);
+
+      if (!hotel) {
+        throw new NotFoundException('Hotel not found');
+      }
+
+      if (hotel.availableRooms <= 0) {
+        throw new ConflictException('Hotel room is already occupied or unavailable');
+      }
+
+      await tx
+        .update(hotels)
+        .set({
+          availableRooms: sql`${hotels.availableRooms} - 1`,
+        })
+        .where(eq(hotels.id, dto.resourceId));
+
+      const [booking] = await tx
+        .insert(hotelBookings)
+        .values({
+          hotelId: dto.resourceId,
+          bookingReference: dto.bookingReference,
+          status: BookingStatus.CONFIRMED,
+        })
+        .returning();
+
+      return {
+        id: booking.id,
+        bookingReference: booking.bookingReference,
+        status: booking.status,
+        createdAt: booking.createdAt,
+      };
+    });
   }
 }

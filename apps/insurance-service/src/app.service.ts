@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, ilike, lte, SQL } from 'drizzle-orm';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, eq, ilike, lte, SQL } from 'drizzle-orm';
+import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
-import { insurancePolicies } from './db/schema';
+import { insuranceBookings, insurancePolicies } from './db/schema';
+import { BookingResponseDto } from './dto/booking-response.dto';
+import { CreateBookingDto } from './dto/create-booking.dto';
 import { InsuranceResponseDto } from './dto/insurance-response.dto';
 import { SearchInsurancesDto } from './dto/search-insurances.dto';
 
@@ -42,5 +45,35 @@ export class AppService {
       .from(insurancePolicies);
 
     return conditions.length > 0 ? selectQuery.where(and(...conditions)) : selectQuery;
+  }
+
+  async bookInsurance(dto: CreateBookingDto): Promise<BookingResponseDto> {
+    return this.db.transaction(async (tx) => {
+      const [policy] = await tx
+        .select()
+        .from(insurancePolicies)
+        .where(eq(insurancePolicies.id, dto.resourceId))
+        .limit(1);
+
+      if (!policy) {
+        throw new NotFoundException('Insurance policy not found');
+      }
+
+      const [booking] = await tx
+        .insert(insuranceBookings)
+        .values({
+          policyId: dto.resourceId,
+          bookingReference: dto.bookingReference,
+          status: BookingStatus.CONFIRMED,
+        })
+        .returning();
+
+      return {
+        id: booking.id,
+        bookingReference: booking.bookingReference,
+        status: booking.status,
+        createdAt: booking.createdAt,
+      };
+    });
   }
 }

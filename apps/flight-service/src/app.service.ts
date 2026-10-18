@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, gte, ilike, lte, SQL } from 'drizzle-orm';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
+import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
-import { flights } from './db/schema';
+import { flightBookings, flights } from './db/schema';
+import { BookingResponseDto } from './dto/booking-response.dto';
+import { CreateBookingDto } from './dto/create-booking.dto';
 import { FlightResponseDto } from './dto/flight-response.dto';
 import { SearchFlightsDto } from './dto/search-flights.dto';
 
@@ -42,5 +45,46 @@ export class AppService {
       })
       .from(flights)
       .where(and(...conditions));
+  }
+
+  async bookFlight(dto: CreateBookingDto): Promise<BookingResponseDto> {
+    return this.db.transaction(async (tx) => {
+      const [flight] = await tx
+        .select()
+        .from(flights)
+        .where(eq(flights.id, dto.resourceId))
+        .limit(1);
+
+      if (!flight) {
+        throw new NotFoundException('Flight not found');
+      }
+
+      if (flight.availableSeats <= 0) {
+        throw new ConflictException('Flight has no available seats');
+      }
+
+      await tx
+        .update(flights)
+        .set({
+          availableSeats: sql`${flights.availableSeats} - 1`,
+        })
+        .where(eq(flights.id, dto.resourceId));
+
+      const [booking] = await tx
+        .insert(flightBookings)
+        .values({
+          flightId: dto.resourceId,
+          bookingReference: dto.bookingReference,
+          status: BookingStatus.CONFIRMED,
+        })
+        .returning();
+
+      return {
+        id: booking.id,
+        bookingReference: booking.bookingReference,
+        status: booking.status,
+        createdAt: booking.createdAt,
+      };
+    });
   }
 }

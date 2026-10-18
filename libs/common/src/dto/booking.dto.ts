@@ -1,37 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 import { BookingStatus } from '../enums/booking-status.enum';
 
 export class BaseCreateBookingDto {
   @ApiProperty({
-    example: 'BOOK-REF-12345',
-    description: 'Booking reference identifier from orchestrator',
+    example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
+    description: 'UUID of the selected resource to book',
   })
-  @IsString()
+  @IsUUID(4, { message: 'resourceId must be a UUID' })
   @IsNotEmpty()
-  bookingReference: string;
+  resourceId: string;
 
   @ApiProperty({
-    enum: BookingStatus,
-    example: BookingStatus.CONFIRMED,
-    required: false,
-    description: 'Booking status',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Booking reference / step ID from the saga orchestrator',
   })
-  @IsOptional()
-  @IsEnum(BookingStatus)
-  status?: BookingStatus;
+  @IsNotEmpty({ message: 'bookingReference should not be empty' })
+  @IsString()
+  bookingReference: string;
 }
 
 export class BaseBookingResponseDto {
   @ApiProperty({
     example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
-    description: 'Unique booking identifier',
+    description: 'Unique booking identifier in the microservice',
   })
   id: string;
 
   @ApiProperty({
-    example: 'BOOK-REF-12345',
-    description: 'Booking reference identifier from orchestrator',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Booking reference / step ID from orchestrator',
   })
   bookingReference: string;
 
@@ -40,11 +38,10 @@ export class BaseBookingResponseDto {
     example: BookingStatus.CONFIRMED,
     description: 'Booking status',
   })
-  @IsEnum(BookingStatus)
   status: BookingStatus;
 
   @ApiProperty({
-    example: '2026-10-11T12:00:00.000Z',
+    example: '2026-10-18T12:00:00.000Z',
     description: 'Booking creation timestamp',
   })
   createdAt: Date | string;

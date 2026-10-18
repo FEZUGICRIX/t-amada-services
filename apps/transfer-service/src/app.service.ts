@@ -1,7 +1,10 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { and, gte, ilike, lte, SQL } from 'drizzle-orm';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
+import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
-import { vehicles } from './db/schema';
+import { transferBookings, vehicles } from './db/schema';
+import { BookingResponseDto } from './dto/booking-response.dto';
+import { CreateBookingDto } from './dto/create-booking.dto';
 import { SearchTransfersDto } from './dto/search-transfers.dto';
 import { TransferResponseDto } from './dto/transfer-response.dto';
 
@@ -46,5 +49,46 @@ export class AppService {
       .from(vehicles);
 
     return conditions.length > 0 ? selectQuery.where(and(...conditions)) : selectQuery;
+  }
+
+  async bookTransfer(dto: CreateBookingDto): Promise<BookingResponseDto> {
+    return this.db.transaction(async (tx) => {
+      const [vehicle] = await tx
+        .select()
+        .from(vehicles)
+        .where(eq(vehicles.id, dto.resourceId))
+        .limit(1);
+
+      if (!vehicle) {
+        throw new NotFoundException('Vehicle not found');
+      }
+
+      if (vehicle.capacity <= 0) {
+        throw new ConflictException('No available transfer capacity');
+      }
+
+      await tx
+        .update(vehicles)
+        .set({
+          capacity: sql`${vehicles.capacity} - 1`,
+        })
+        .where(eq(vehicles.id, dto.resourceId));
+
+      const [booking] = await tx
+        .insert(transferBookings)
+        .values({
+          vehicleId: dto.resourceId,
+          bookingReference: dto.bookingReference,
+          status: BookingStatus.CONFIRMED,
+        })
+        .returning();
+
+      return {
+        id: booking.id,
+        bookingReference: booking.bookingReference,
+        status: booking.status,
+        createdAt: booking.createdAt,
+      };
+    });
   }
 }
