@@ -1,11 +1,11 @@
 import 'dotenv/config';
-import { defineConfig } from 'drizzle-kit';
+import { defineConfig, type Config } from 'drizzle-kit';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is not defined in environment variables');
 }
 
-export default defineConfig({
+const config: Config = defineConfig({
   schema: './src/db/schema.ts',
   out: './drizzle',
   dialect: 'postgresql',
@@ -13,3 +13,5 @@ export default defineConfig({
     url: process.env.DATABASE_URL,
   },
 });
+
+export default config;

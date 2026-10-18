@@ -1,4 +1,6 @@
 export * from './dto/api-response.dto';
+export * from './dto/booking.dto';
+export * from './enums';
 export * from './filters/error-response.dto';
 export * from './filters/http-exception.filter';
 export * from './interceptors/transform-response.interceptor';

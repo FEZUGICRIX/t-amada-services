@@ -15,6 +15,13 @@
       "when": 1791144641071,
       "tag": "0001_abnormal_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791741588976,
+      "tag": "0002_burly_mongu",
+      "breakpoints": true
     }
   ]
 }

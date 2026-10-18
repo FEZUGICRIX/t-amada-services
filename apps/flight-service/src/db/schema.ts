@@ -1,9 +1,13 @@
 import { pgTable, uuid, varchar, integer, numeric, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import type { BookingStatus } from '@t-amada/common';
 
 export const flightBookingStatusEnum = pgEnum('flight_booking_status', [
   'PENDING',
+  'PROCESSING',
   'CONFIRMED',
+  'FAILED',
+  'CANCELLING',
   'CANCELLED',
 ]);
 
@@ -20,7 +24,10 @@ export const flightBookings = pgTable('flight_bookings', {
   flightId: uuid('flight_id')
     .notNull()
     .references(() => flights.id, { onDelete: 'cascade' }),
-  status: flightBookingStatusEnum('status').default('PENDING').notNull(),
+  status: flightBookingStatusEnum('status')
+    .$type<BookingStatus>()
+    .default('PENDING' as BookingStatus)
+    .notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 

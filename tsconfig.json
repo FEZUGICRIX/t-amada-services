@@ -17,6 +17,7 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "useDefineForClassFields": false,
     "paths": {
       "@t-amada/common": ["libs/common/src"],
       "@t-amada/common/*": ["libs/common/src/*"]
