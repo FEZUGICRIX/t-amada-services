@@ -1,6 +1,5 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule, OpenAPIObject } from '@nestjs/swagger';
-import { ApiResponseDto } from '../dto/api-response.dto';
 import { ErrorResponseDto } from '../filters/error-response.dto';
 
 export interface SwaggerSetupOptions {
@@ -23,7 +22,7 @@ export function setupSwagger(app: INestApplication, options: SwaggerSetupOptions
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {
-    extraModels: [ApiResponseDto, ErrorResponseDto],
+    extraModels: [ErrorResponseDto],
   });
 
   SwaggerModule.setup(routePrefix, app, document, {

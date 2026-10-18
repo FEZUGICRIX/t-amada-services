@@ -1,18 +1,12 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import {
-  HttpExceptionFilter,
-  TransformResponseInterceptor,
-  ChaosInterceptor,
-  setupSwagger,
-} from '@t-amada/common';
+import { HttpExceptionFilter, ChaosInterceptor, setupSwagger } from '@t-amada/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const logger = new Logger('TransferService');
-  const reflector = app.get(Reflector);
   const configService = app.get(ConfigService);
 
   const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1/transfer');
@@ -29,7 +23,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalInterceptors(new ChaosInterceptor(), new TransformResponseInterceptor(reflector));
+  app.useGlobalInterceptors(new ChaosInterceptor());
 
   // Swagger setup at ${apiPrefix}/docs
   setupSwagger(app, {
