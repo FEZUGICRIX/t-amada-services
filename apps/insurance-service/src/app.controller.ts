@@ -22,6 +22,7 @@ export class AppController {
   @Get('health')
   @ApiTags('Health')
   @ApiOperation({ summary: 'Health check' })
+  @ApiOkResponse({ type: HealthResponseDto, description: 'Service health status' })
   getHealth(): HealthResponseDto {
     return this.appService.getHealth();
   }

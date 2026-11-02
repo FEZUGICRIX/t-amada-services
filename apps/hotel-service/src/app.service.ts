@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ApiProperty } from '@nestjs/swagger';
 import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
@@ -10,9 +11,14 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
 
-export interface HealthResponseDto {
+export class HealthResponseDto {
+  @ApiProperty({ example: 'ok', description: 'Health check status' })
   status: 'ok';
+
+  @ApiProperty({ example: 'hotel-service', description: 'Microservice name' })
   service: string;
+
+  @ApiProperty({ example: '2026-11-02T16:30:00.000Z', description: 'Current server ISO timestamp' })
   timestamp: string;
 }
 
@@ -42,6 +48,11 @@ export class AppService {
       .select({
         id: hotels.id,
         name: hotels.name,
+        stars: hotels.stars,
+        locationTag: hotels.locationTag,
+        imageUrl: hotels.imageUrl,
+        hasBreakfast: hotels.hasBreakfast,
+        hasFreeCancellation: hotels.hasFreeCancellation,
         availableRooms: hotels.availableRooms,
         pricePerNight: hotels.pricePerNight,
       })
