@@ -1,4 +1,13 @@
-import { pgTable, uuid, varchar, integer, numeric, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  varchar,
+  integer,
+  numeric,
+  timestamp,
+  pgEnum,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { BookingStatus } from '@t-amada/common';
 
@@ -14,6 +23,11 @@ export const hotelBookingStatusEnum = pgEnum('hotel_booking_status', [
 export const hotels = pgTable('hotels', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 255 }).notNull().unique(),
+  stars: integer('stars').notNull().default(3),
+  locationTag: varchar('location_tag', { length: 255 }),
+  imageUrl: varchar('image_url', { length: 500 }),
+  hasBreakfast: boolean('has_breakfast').notNull().default(false),
+  hasFreeCancellation: boolean('has_free_cancellation').notNull().default(false),
   availableRooms: integer('available_rooms').notNull(),
   pricePerNight: numeric('price_per_night', { precision: 10, scale: 2 }).notNull(),
 });

@@ -1,4 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ApiProperty } from '@nestjs/swagger';
 import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
@@ -10,9 +11,14 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { FlightResponseDto } from './dto/flight-response.dto';
 import { SearchFlightsDto } from './dto/search-flights.dto';
 
-export interface HealthResponseDto {
+export class HealthResponseDto {
+  @ApiProperty({ example: 'ok', description: 'Health check status' })
   status: 'ok';
+
+  @ApiProperty({ example: 'flight-service', description: 'Microservice name' })
   service: string;
+
+  @ApiProperty({ example: '2026-11-02T16:30:00.000Z', description: 'Current server ISO timestamp' })
   timestamp: string;
 }
 
@@ -42,6 +48,16 @@ export class AppService {
       .select({
         id: flights.id,
         flightNumber: flights.flightNumber,
+        airlineCode: flights.airlineCode,
+        airlineName: flights.airlineName,
+        departureCity: flights.departureCity,
+        arrivalCity: flights.arrivalCity,
+        departureTime: flights.departureTime,
+        arrivalTime: flights.arrivalTime,
+        hasBaggage: flights.hasBaggage,
+        baggageWeightKg: flights.baggageWeightKg,
+        flightClass: flights.flightClass,
+        flightType: flights.flightType,
         availableSeats: flights.availableSeats,
         price: flights.price,
       })
@@ -50,6 +66,8 @@ export class AppService {
   }
 
   async bookFlight(dto: CreateBookingDto): Promise<BookingResponseDto> {
+    const requestedSeats = dto.passengersCount ?? 1;
+
     return this.db.transaction(async (tx) => {
       const [flight] = await tx
         .select()
@@ -61,14 +79,16 @@ export class AppService {
         throw new NotFoundException('Flight not found');
       }
 
-      if (flight.availableSeats <= 0) {
-        throw new ConflictException('Flight has no available seats');
+      if (flight.availableSeats < requestedSeats) {
+        throw new ConflictException(
+          `Not enough available seats: requested ${requestedSeats}, available ${flight.availableSeats}`,
+        );
       }
 
       await tx
         .update(flights)
         .set({
-          availableSeats: sql`${flights.availableSeats} - 1`,
+          availableSeats: sql`${flights.availableSeats} - ${requestedSeats}`,
         })
         .where(eq(flights.id, dto.resourceId));
 
@@ -77,6 +97,8 @@ export class AppService {
         .values({
           flightId: dto.resourceId,
           bookingReference: dto.bookingReference,
+          passengersCount: requestedSeats,
+          flightClass: dto.flightClass ?? flight.flightClass,
           status: BookingStatus.CONFIRMED,
         })
         .returning();
@@ -85,6 +107,8 @@ export class AppService {
         id: booking.id,
         bookingReference: booking.bookingReference,
         status: booking.status,
+        passengersCount: booking.passengersCount,
+        flightClass: booking.flightClass,
         createdAt: booking.createdAt,
       };
     });
@@ -110,10 +134,12 @@ export class AppService {
         };
       }
 
+      const seatsToRestore = booking.passengersCount ?? 1;
+
       await tx
         .update(flights)
         .set({
-          availableSeats: sql`${flights.availableSeats} + 1`,
+          availableSeats: sql`${flights.availableSeats} + ${seatsToRestore}`,
         })
         .where(eq(flights.id, booking.flightId));
 

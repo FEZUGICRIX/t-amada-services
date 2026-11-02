@@ -1,4 +1,13 @@
-import { pgTable, uuid, varchar, numeric, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  varchar,
+  numeric,
+  timestamp,
+  pgEnum,
+  jsonb,
+  text,
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { BookingStatus } from '@t-amada/common';
 
@@ -11,9 +20,15 @@ export const insuranceBookingStatusEnum = pgEnum('insurance_booking_status', [
   'CANCELLED',
 ]);
 
+export const insurancePlanTypeEnum = pgEnum('insurance_plan_type', ['BASIC', 'EXTENDED']);
+
 export const insurancePolicies = pgTable('insurance_policies', {
   id: uuid('id').defaultRandom().primaryKey(),
   title: varchar('title', { length: 255 }).notNull().unique(),
+  planType: insurancePlanTypeEnum('plan_type').notNull().default('BASIC'),
+  coverageAmount: numeric('coverage_amount', { precision: 12, scale: 2 }).notNull(),
+  coveredRisks: jsonb('covered_risks').notNull().$type<string[]>(),
+  exclusions: text('exclusions'),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 });
 

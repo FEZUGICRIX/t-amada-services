@@ -1,4 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ApiProperty } from '@nestjs/swagger';
 import { and, eq, ilike, lte, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
@@ -10,9 +11,14 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { InsuranceResponseDto } from './dto/insurance-response.dto';
 import { SearchInsurancesDto } from './dto/search-insurances.dto';
 
-export interface HealthResponseDto {
+export class HealthResponseDto {
+  @ApiProperty({ example: 'ok', description: 'Health check status' })
   status: 'ok';
+
+  @ApiProperty({ example: 'insurance-service', description: 'Microservice name' })
   service: string;
+
+  @ApiProperty({ example: '2026-11-02T16:30:00.000Z', description: 'Current server ISO timestamp' })
   timestamp: string;
 }
 
@@ -42,6 +48,10 @@ export class AppService {
       .select({
         id: insurancePolicies.id,
         title: insurancePolicies.title,
+        planType: insurancePolicies.planType,
+        coverageAmount: insurancePolicies.coverageAmount,
+        coveredRisks: insurancePolicies.coveredRisks,
+        exclusions: insurancePolicies.exclusions,
         price: insurancePolicies.price,
       })
       .from(insurancePolicies);

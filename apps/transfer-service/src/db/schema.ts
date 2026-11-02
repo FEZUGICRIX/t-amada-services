@@ -11,10 +11,19 @@ export const transferBookingStatusEnum = pgEnum('transfer_booking_status', [
   'CANCELLED',
 ]);
 
+export const vehicleClassEnum = pgEnum('vehicle_class', ['STANDARD', 'MINIVAN']);
+
+export const transferRouteTypeEnum = pgEnum('transfer_route_type', ['ONE_WAY', 'ROUND_TRIP']);
+
 export const vehicles = pgTable('vehicles', {
   id: uuid('id').defaultRandom().primaryKey(),
   model: varchar('model', { length: 255 }).notNull().unique(),
+  vehicleClass: vehicleClassEnum('vehicle_class').notNull().default('STANDARD'),
+  vehicleTypeName: varchar('vehicle_type_name', { length: 50 }).notNull(),
   capacity: integer('capacity').notNull(),
+  maxPassengers: integer('max_passengers').notNull(),
+  baggageCapacityInfo: varchar('baggage_capacity_info', { length: 255 }),
+  transferRouteType: transferRouteTypeEnum('transfer_route_type').notNull().default('ONE_WAY'),
   price: numeric('price', { precision: 10, scale: 2 }).notNull(),
 });
 
