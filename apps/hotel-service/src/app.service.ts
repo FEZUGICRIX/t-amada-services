@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { hotelBookings, hotels } from './db/schema';
@@ -35,16 +35,44 @@ export class AppService {
   }
 
   async searchHotels(query: SearchHotelsDto): Promise<HotelResponseDto[]> {
-    const conditions: SQL[] = [gte(hotels.availableRooms, query.minRooms ?? 1)];
+    const conditions: SQL[] = [gt(hotels.availableRooms, 0)];
+
+    if (query.minRooms !== undefined) {
+      conditions.push(gte(hotels.availableRooms, query.minRooms));
+    }
+
+    if (query.city) {
+      const cityPattern = `%${query.city.trim()}%`;
+      conditions.push(or(ilike(hotels.locationTag, cityPattern), ilike(hotels.name, cityPattern))!);
+    }
 
     if (query.name) {
-      conditions.push(ilike(hotels.name, `%${query.name}%`));
-    }
-    if (query.maxPricePerNight !== undefined) {
-      conditions.push(lte(hotels.pricePerNight, query.maxPricePerNight.toString()));
+      conditions.push(ilike(hotels.name, `%${query.name.trim()}%`));
     }
 
-    return this.db
+    if (query.stars && query.stars.length > 0) {
+      conditions.push(inArray(hotels.stars, query.stars));
+    }
+
+    if (query.hasBreakfast !== undefined) {
+      conditions.push(eq(hotels.hasBreakfast, query.hasBreakfast));
+    }
+
+    if (query.hasFreeCancellation !== undefined) {
+      conditions.push(eq(hotels.hasFreeCancellation, query.hasFreeCancellation));
+    }
+
+    const minPrice = query.minPrice;
+    if (minPrice !== undefined) {
+      conditions.push(gte(hotels.pricePerNight, minPrice.toString()));
+    }
+
+    const maxPrice = query.maxPrice ?? query.maxPricePerNight;
+    if (maxPrice !== undefined) {
+      conditions.push(lte(hotels.pricePerNight, maxPrice.toString()));
+    }
+
+    let selectQuery = this.db
       .select({
         id: hotels.id,
         name: hotels.name,
@@ -58,6 +86,14 @@ export class AppService {
       })
       .from(hotels)
       .where(and(...conditions));
+
+    if (query.sortBy === 'price_asc') {
+      selectQuery = selectQuery.orderBy(asc(hotels.pricePerNight)) as typeof selectQuery;
+    } else if (query.sortBy === 'price_desc') {
+      selectQuery = selectQuery.orderBy(desc(hotels.pricePerNight)) as typeof selectQuery;
+    }
+
+    return selectQuery;
   }
 
   async bookHotel(dto: CreateBookingDto): Promise<BookingResponseDto> {

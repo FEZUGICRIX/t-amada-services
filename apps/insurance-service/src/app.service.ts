@@ -1,6 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { and, eq, ilike, lte, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ilike, lte, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { insuranceBookings, insurancePolicies } from './db/schema';
@@ -37,14 +37,23 @@ export class AppService {
   async searchInsurances(query: SearchInsurancesDto): Promise<InsuranceResponseDto[]> {
     const conditions: SQL[] = [];
 
-    if (query.title) {
-      conditions.push(ilike(insurancePolicies.title, `%${query.title}%`));
+    if (query.planType) {
+      conditions.push(eq(insurancePolicies.planType, query.planType));
     }
+
+    if (query.title) {
+      conditions.push(ilike(insurancePolicies.title, `%${query.title.trim()}%`));
+    }
+
+    if (query.minPrice !== undefined) {
+      conditions.push(gte(insurancePolicies.price, query.minPrice.toString()));
+    }
+
     if (query.maxPrice !== undefined) {
       conditions.push(lte(insurancePolicies.price, query.maxPrice.toString()));
     }
 
-    const selectQuery = this.db
+    let selectQuery = this.db
       .select({
         id: insurancePolicies.id,
         title: insurancePolicies.title,
@@ -56,7 +65,40 @@ export class AppService {
       })
       .from(insurancePolicies);
 
-    return conditions.length > 0 ? selectQuery.where(and(...conditions)) : selectQuery;
+    if (conditions.length > 0) {
+      selectQuery = selectQuery.where(and(...conditions)) as typeof selectQuery;
+    }
+
+    if (query.sortBy === 'price_asc') {
+      selectQuery = selectQuery.orderBy(asc(insurancePolicies.price)) as typeof selectQuery;
+    } else if (query.sortBy === 'price_desc') {
+      selectQuery = selectQuery.orderBy(desc(insurancePolicies.price)) as typeof selectQuery;
+    }
+
+    const policies = await selectQuery;
+
+    const passengersCount = query.passengersCount;
+
+    return policies.map((policy) => {
+      const basePrice = policy.price;
+      const numericPrice = parseFloat(basePrice);
+
+      if (passengersCount !== undefined && passengersCount > 0) {
+        const total = (numericPrice * passengersCount).toFixed(2);
+        return {
+          ...policy,
+          basePrice,
+          totalPrice: total,
+          passengersCount,
+        };
+      }
+
+      return {
+        ...policy,
+        basePrice,
+        totalPrice: basePrice,
+      };
+    });
   }
 
   async bookInsurance(dto: CreateBookingDto): Promise<BookingResponseDto> {
