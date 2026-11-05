@@ -41,7 +41,25 @@ export class InsuranceResponseDto {
 
   @ApiProperty({
     example: '2500.00',
-    description: 'Insurance policy cost in currency units',
+    description: 'Insurance policy base price in currency units',
   })
   price: string;
+
+  @ApiPropertyOptional({
+    example: '2500.00',
+    description: 'Base price per insured person',
+  })
+  basePrice?: string;
+
+  @ApiPropertyOptional({
+    example: '5000.00',
+    description: 'Calculated total price (basePrice * passengersCount)',
+  })
+  totalPrice?: string;
+
+  @ApiPropertyOptional({
+    example: 2,
+    description: 'Number of passengers used for total price calculation',
+  })
+  passengersCount?: number;
 }

@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { transferBookings, vehicles } from './db/schema';
@@ -35,19 +35,33 @@ export class AppService {
   }
 
   async searchTransfers(query: SearchTransfersDto): Promise<TransferResponseDto[]> {
-    const conditions: SQL[] = [];
+    const conditions: SQL[] = [gt(vehicles.capacity, 0)];
+
+    if (query.passengersCount !== undefined) {
+      conditions.push(gte(vehicles.maxPassengers, query.passengersCount));
+    }
 
     if (query.capacity !== undefined) {
       conditions.push(gte(vehicles.capacity, query.capacity));
     }
-    if (query.model) {
-      conditions.push(ilike(vehicles.model, `%${query.model}%`));
+
+    if (query.routeType) {
+      conditions.push(eq(vehicles.transferRouteType, query.routeType));
     }
+
+    if (query.model) {
+      conditions.push(ilike(vehicles.model, `%${query.model.trim()}%`));
+    }
+
+    if (query.minPrice !== undefined) {
+      conditions.push(gte(vehicles.price, query.minPrice.toString()));
+    }
+
     if (query.maxPrice !== undefined) {
       conditions.push(lte(vehicles.price, query.maxPrice.toString()));
     }
 
-    const selectQuery = this.db
+    let selectQuery = this.db
       .select({
         id: vehicles.id,
         model: vehicles.model,
@@ -59,9 +73,16 @@ export class AppService {
         transferRouteType: vehicles.transferRouteType,
         price: vehicles.price,
       })
-      .from(vehicles);
+      .from(vehicles)
+      .where(and(...conditions));
 
-    return conditions.length > 0 ? selectQuery.where(and(...conditions)) : selectQuery;
+    if (query.sortBy === 'price_asc') {
+      selectQuery = selectQuery.orderBy(asc(vehicles.price)) as typeof selectQuery;
+    } else if (query.sortBy === 'price_desc') {
+      selectQuery = selectQuery.orderBy(desc(vehicles.price)) as typeof selectQuery;
+    }
+
+    return selectQuery;
   }
 
   async bookTransfer(dto: CreateBookingDto): Promise<BookingResponseDto> {

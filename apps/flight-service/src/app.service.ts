@@ -1,6 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { and, eq, gte, ilike, lte, sql, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { flightBookings, flights } from './db/schema';
@@ -35,13 +35,67 @@ export class AppService {
   }
 
   async searchFlights(query: SearchFlightsDto): Promise<FlightResponseDto[]> {
-    const conditions: SQL[] = [gte(flights.availableSeats, query.minSeats ?? 1)];
+    const conditions: SQL[] = [gt(flights.availableSeats, 0)];
 
-    if (query.flightNumber) {
-      conditions.push(ilike(flights.flightNumber, `%${query.flightNumber}%`));
+    if (query.minSeats !== undefined) {
+      conditions.push(gte(flights.availableSeats, query.minSeats));
     }
+
+    if (query.origin) {
+      conditions.push(ilike(flights.departureCity, `%${query.origin.trim()}%`));
+    }
+
+    if (query.destination) {
+      conditions.push(ilike(flights.arrivalCity, `%${query.destination.trim()}%`));
+    }
+
+    if (query.date) {
+      const datePart = query.date.includes('T') ? query.date.split('T')[0] : query.date;
+      const startOfDay = new Date(`${datePart}T00:00:00.000Z`);
+      const endOfDay = new Date(`${datePart}T23:59:59.999Z`);
+      conditions.push(gte(flights.departureTime, startOfDay));
+      conditions.push(lte(flights.departureTime, endOfDay));
+    }
+
+    if (query.flightClass) {
+      conditions.push(eq(flights.flightClass, query.flightClass));
+    }
+
+    if (query.airlines && query.airlines.length > 0) {
+      const airlineCodes = Array.from(
+        new Set([...query.airlines, ...query.airlines.map((a) => a.toUpperCase())]),
+      );
+      conditions.push(
+        or(
+          inArray(flights.airlineCode, airlineCodes),
+          inArray(flights.airlineName, query.airlines),
+        )!,
+      );
+    }
+
+    if (query.hasBaggage !== undefined) {
+      conditions.push(eq(flights.hasBaggage, query.hasBaggage));
+    }
+
+    if (query.minPrice !== undefined) {
+      conditions.push(gte(flights.price, query.minPrice.toString()));
+    }
+
     if (query.maxPrice !== undefined) {
       conditions.push(lte(flights.price, query.maxPrice.toString()));
+    }
+
+    if (query.flightNumber) {
+      conditions.push(ilike(flights.flightNumber, `%${query.flightNumber.trim()}%`));
+    }
+
+    let orderByClause: SQL;
+    if (query.sortBy === 'price_asc') {
+      orderByClause = asc(flights.price);
+    } else if (query.sortBy === 'price_desc') {
+      orderByClause = desc(flights.price);
+    } else {
+      orderByClause = asc(flights.departureTime);
     }
 
     return this.db
@@ -62,7 +116,8 @@ export class AppService {
         price: flights.price,
       })
       .from(flights)
-      .where(and(...conditions));
+      .where(and(...conditions))
+      .orderBy(orderByClause);
   }
 
   async bookFlight(dto: CreateBookingDto): Promise<BookingResponseDto> {
