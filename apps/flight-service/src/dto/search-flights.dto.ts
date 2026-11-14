@@ -130,4 +130,37 @@ export class SearchFlightsDto {
   @IsInt()
   @Min(1)
   minSeats?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of adult passengers (age 12+)',
+    example: 1,
+    default: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  adultsCount?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of child passengers (age 2-12)',
+    example: 0,
+    default: 0,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  childrenCount?: number;
+
+  @ApiPropertyOptional({
+    description: 'Number of infant passengers (under 2 years old, no seat)',
+    example: 0,
+    default: 0,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  infantsCount?: number;
 }

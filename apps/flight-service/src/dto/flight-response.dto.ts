@@ -91,4 +91,10 @@ export class FlightResponseDto {
     description: 'Ticket price in currency units',
   })
   price: string;
+
+  @ApiProperty({
+    example: '8500.00',
+    description: 'Calculated total price for the entire passenger group',
+  })
+  totalPrice: string;
 }
