@@ -51,8 +51,9 @@ export class AppService {
 
     if (query.date) {
       const datePart = query.date.includes('T') ? query.date.split('T')[0] : query.date;
-      const startOfDay = new Date(`${datePart}T00:00:00.000Z`);
-      const endOfDay = new Date(`${datePart}T23:59:59.999Z`);
+      const startOfDay = new Date(`${datePart}T00:00:00.000+03:00`);
+      const endOfDay = new Date(`${datePart}T23:59:59.999+03:00`);
+
       conditions.push(gte(flights.departureTime, startOfDay));
       conditions.push(lte(flights.departureTime, endOfDay));
     }
@@ -98,7 +99,7 @@ export class AppService {
       orderByClause = asc(flights.departureTime);
     }
 
-    return this.db
+    const results = await this.db
       .select({
         id: flights.id,
         flightNumber: flights.flightNumber,
@@ -118,6 +119,17 @@ export class AppService {
       .from(flights)
       .where(and(...conditions))
       .orderBy(orderByClause);
+
+    return results.map((flight) => {
+      const durationMinutes = Math.round(
+        (new Date(flight.arrivalTime).getTime() - new Date(flight.departureTime).getTime()) / 60000,
+      );
+
+      return {
+        ...flight,
+        durationMinutes,
+      };
+    });
   }
 
   async bookFlight(dto: CreateBookingDto): Promise<BookingResponseDto> {

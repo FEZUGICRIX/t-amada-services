@@ -50,6 +50,12 @@ export class FlightResponseDto {
   arrivalTime: Date | string;
 
   @ApiProperty({
+    example: 240,
+    description: 'Total flight duration in minutes',
+  })
+  durationMinutes: number;
+
+  @ApiProperty({
     example: true,
     description: 'Whether checked baggage is included',
   })
