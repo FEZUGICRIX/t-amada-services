@@ -11,7 +11,7 @@ import { AppService, HealthResponseDto } from './app.service';
 import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
-import { CreateBookingDto } from './dto/create-booking.dto';
+import { BookFlightDto } from './dto/create-booking.dto';
 import { FlightResponseDto } from './dto/flight-response.dto';
 import { SearchFlightsDto } from './dto/search-flights.dto';
 
@@ -45,7 +45,7 @@ export class AppController {
   @ApiBadRequestResponse({ description: 'DTO validation error (400)' })
   @ApiNotFoundResponse({ description: 'Resource not found (404)' })
   @ApiConflictResponse({ description: 'Resource unavailable / no seats left (409)' })
-  async book(@Body() dto: CreateBookingDto): Promise<BookingResponseDto> {
+  async book(@Body() dto: BookFlightDto): Promise<BookingResponseDto> {
     return this.appService.bookFlight(dto);
   }
 

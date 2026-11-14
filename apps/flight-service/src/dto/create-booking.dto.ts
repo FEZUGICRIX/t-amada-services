@@ -3,10 +3,44 @@ import { BaseCreateBookingDto } from '@t-amada/common';
 import { Type } from 'class-transformer';
 import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
-export class CreateBookingDto extends BaseCreateBookingDto {
+export class BookFlightDto extends BaseCreateBookingDto {
   @ApiPropertyOptional({
     example: 1,
-    description: 'Number of passenger seats to book',
+    description: 'Number of adult passengers (age 12+)',
+    default: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'adultsCount must be an integer' })
+  @Min(1, { message: 'adultsCount must be at least 1' })
+  adultsCount?: number;
+
+  @ApiPropertyOptional({
+    example: 0,
+    description: 'Number of child passengers (age 2-12)',
+    default: 0,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'childrenCount must be an integer' })
+  @Min(0, { message: 'childrenCount must be at least 0' })
+  childrenCount?: number;
+
+  @ApiPropertyOptional({
+    example: 0,
+    description: 'Number of infant passengers (<2 years old, no seat)',
+    default: 0,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'infantsCount must be an integer' })
+  @Min(0, { message: 'infantsCount must be at least 0' })
+  infantsCount?: number;
+
+  @ApiPropertyOptional({
+    example: 1,
+    description:
+      'Number of passenger seats to book (deprecated in favor of adultsCount + childrenCount)',
     default: 1,
   })
   @IsOptional()
@@ -26,4 +60,6 @@ export class CreateBookingDto extends BaseCreateBookingDto {
   flightClass?: string;
 }
 
-export class CreateFlightBookingDto extends CreateBookingDto {}
+export class CreateBookingDto extends BookFlightDto {}
+
+export class CreateFlightBookingDto extends BookFlightDto {}

@@ -1,13 +1,13 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
 import { BookingStatus } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { flightBookings, flights } from './db/schema';
 import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
-import { CreateBookingDto } from './dto/create-booking.dto';
+import { BookFlightDto } from './dto/create-booking.dto';
 import { FlightResponseDto } from './dto/flight-response.dto';
 import { SearchFlightsDto } from './dto/search-flights.dto';
 
@@ -35,7 +35,11 @@ export class AppService {
   }
 
   async searchFlights(query: SearchFlightsDto): Promise<FlightResponseDto[]> {
-    const conditions: SQL[] = [gt(flights.availableSeats, 0)];
+    const adultsCount = query.adultsCount ?? 1;
+    const childrenCount = query.childrenCount ?? 0;
+    const seatsNeeded = adultsCount + childrenCount;
+
+    const conditions: SQL[] = [gte(flights.availableSeats, seatsNeeded > 0 ? seatsNeeded : 1)];
 
     if (query.minSeats !== undefined) {
       conditions.push(gte(flights.availableSeats, query.minSeats));
@@ -125,37 +129,49 @@ export class AppService {
         (new Date(flight.arrivalTime).getTime() - new Date(flight.departureTime).getTime()) / 60000,
       );
 
+      const basePrice = Number(flight.price);
+      const totalPriceValue = adultsCount * basePrice + childrenCount * basePrice * 0.7;
+      const totalPrice = totalPriceValue.toFixed(2);
+
       return {
         ...flight,
         durationMinutes,
+        totalPrice,
       };
     });
   }
 
-  async bookFlight(dto: CreateBookingDto): Promise<BookingResponseDto> {
-    const requestedSeats = dto.passengersCount ?? 1;
+  async bookFlight(dto: BookFlightDto): Promise<BookingResponseDto> {
+    const adultsCount =
+      dto.adultsCount !== undefined
+        ? dto.adultsCount
+        : dto.passengersCount !== undefined
+          ? dto.passengersCount
+          : 1;
+    const childrenCount = dto.childrenCount ?? 0;
+    const infantsCount = dto.infantsCount ?? 0;
+    const seatsToDeduct = adultsCount + childrenCount;
 
     return this.db.transaction(async (tx) => {
       const [flight] = await tx
         .select()
         .from(flights)
         .where(eq(flights.id, dto.resourceId))
+        .for('update')
         .limit(1);
 
       if (!flight) {
         throw new NotFoundException('Flight not found');
       }
 
-      if (flight.availableSeats < requestedSeats) {
-        throw new ConflictException(
-          `Not enough available seats: requested ${requestedSeats}, available ${flight.availableSeats}`,
-        );
+      if (flight.availableSeats < seatsToDeduct) {
+        throw new ConflictException('Not enough available seats');
       }
 
       await tx
         .update(flights)
         .set({
-          availableSeats: sql`${flights.availableSeats} - ${requestedSeats}`,
+          availableSeats: sql`${flights.availableSeats} - ${seatsToDeduct}`,
         })
         .where(eq(flights.id, dto.resourceId));
 
@@ -164,7 +180,7 @@ export class AppService {
         .values({
           flightId: dto.resourceId,
           bookingReference: dto.bookingReference,
-          passengersCount: requestedSeats,
+          passengersCount: seatsToDeduct,
           flightClass: dto.flightClass ?? flight.flightClass,
           status: BookingStatus.CONFIRMED,
         })
@@ -176,6 +192,9 @@ export class AppService {
         status: booking.status,
         passengersCount: booking.passengersCount,
         flightClass: booking.flightClass,
+        adultsCount,
+        childrenCount,
+        infantsCount,
         createdAt: booking.createdAt,
       };
     });
@@ -187,6 +206,7 @@ export class AppService {
         .select()
         .from(flightBookings)
         .where(eq(flightBookings.id, dto.bookingId))
+        .for('update')
         .limit(1);
 
       if (!booking) {
