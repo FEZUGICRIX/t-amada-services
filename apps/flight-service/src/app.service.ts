@@ -1,26 +1,18 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
 import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
-import { BookingStatus } from '@t-amada/common';
+import { BookingStatus, HealthResponseDto } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { flightBookings, flights } from './db/schema';
 import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
+import { CityResponseDto } from './dto/city-response.dto';
 import { BookFlightDto } from './dto/create-booking.dto';
 import { FlightResponseDto } from './dto/flight-response.dto';
+import { SearchCitiesDto } from './dto/search-cities.dto';
 import { SearchFlightsDto } from './dto/search-flights.dto';
 
-export class HealthResponseDto {
-  @ApiProperty({ example: 'ok', description: 'Health check status' })
-  status: 'ok';
-
-  @ApiProperty({ example: 'flight-service', description: 'Microservice name' })
-  service: string;
-
-  @ApiProperty({ example: '2026-11-02T16:30:00.000Z', description: 'Current server ISO timestamp' })
-  timestamp: string;
-}
+const POPULAR_CITIES = ['Москва', 'Екатеринбург', 'Санкт-Петербург', 'Сочи'] as const;
 
 @Injectable()
 export class AppService {
@@ -32,6 +24,41 @@ export class AppService {
       service: process.env.SERVICE_NAME || 'flight-service',
       timestamp: new Date().toISOString(),
     };
+  }
+
+  async getCities(query: SearchCitiesDto): Promise<CityResponseDto[]> {
+    const limit = query.limit && query.limit > 0 ? query.limit : 10;
+    const search = query.query?.trim();
+    const pattern = search ? `%${search.replace(/[%_\\]/g, '\\$&')}%` : undefined;
+
+    const dep = this.db
+      .select({ name: flights.departureCity })
+      .from(flights)
+      .where(pattern ? ilike(flights.departureCity, pattern) : undefined);
+
+    const arr = this.db
+      .select({ name: flights.arrivalCity })
+      .from(flights)
+      .where(pattern ? ilike(flights.arrivalCity, pattern) : undefined);
+
+    const dbCities = (await dep.union(arr))
+      .map((r) => r.name.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'ru'));
+
+    const matchingPopular = POPULAR_CITIES.filter(
+      (city) => !search || city.toLowerCase().includes(search.toLowerCase()),
+    );
+
+    const uniqueCities = new Map<string, string>();
+    for (const city of [...matchingPopular, ...dbCities]) {
+      const key = city.toLowerCase();
+      if (!uniqueCities.has(key)) uniqueCities.set(key, city);
+    }
+
+    return Array.from(uniqueCities.values())
+      .slice(0, limit)
+      .map((name) => ({ name, country: 'Россия' }));
   }
 
   async searchFlights(query: SearchFlightsDto): Promise<FlightResponseDto[]> {

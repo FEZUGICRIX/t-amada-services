@@ -7,7 +7,8 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { AppService, HealthResponseDto } from './app.service';
+import { HealthResponseDto } from '@t-amada/common';
+import { AppService } from './app.service';
 import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
