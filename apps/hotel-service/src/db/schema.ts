@@ -23,6 +23,7 @@ export const hotelBookingStatusEnum = pgEnum('hotel_booking_status', [
 export const hotels = pgTable('hotels', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 255 }).notNull().unique(),
+  city: varchar('city', { length: 100 }).notNull().default('Сочи'),
   stars: integer('stars').notNull().default(3),
   locationTag: varchar('location_tag', { length: 255 }),
   imageUrl: varchar('image_url', { length: 500 }),

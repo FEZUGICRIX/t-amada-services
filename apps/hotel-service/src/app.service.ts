@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, sql, SQL } from 'drizzle-orm';
 import { BookingStatus, HealthResponseDto } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { hotelBookings, hotelRooms, hotels } from './db/schema';
@@ -31,8 +31,7 @@ export class AppService {
     }
 
     if (query.city) {
-      const cityPattern = `%${query.city.trim()}%`;
-      conditions.push(or(ilike(hotels.locationTag, cityPattern), ilike(hotels.name, cityPattern))!);
+      conditions.push(ilike(hotels.city, `%${query.city.trim()}%`));
     }
 
     if (query.name) {
@@ -65,6 +64,7 @@ export class AppService {
       .select({
         id: hotels.id,
         name: hotels.name,
+        city: hotels.city,
         stars: hotels.stars,
         locationTag: hotels.locationTag,
         imageUrl: hotels.imageUrl,

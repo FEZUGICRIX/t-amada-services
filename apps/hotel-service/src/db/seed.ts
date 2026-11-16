@@ -177,6 +177,70 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       pricePerNight: '12000.00',
     },
   ],
+  'Grand Hotel Europe': [
+    {
+      name: 'Стандарт двухместный',
+      imageUrl: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32',
+      capacityAdults: 2,
+      capacityChildren: 1,
+      hasBreakfast: false,
+      hasFreeCancellation: true,
+      availableRooms: 15,
+      pricePerNight: '13000.00',
+    },
+    {
+      name: 'Делюкс с завтраком',
+      imageUrl: 'https://images.unsplash.com/photo-1590490360182-c33d57733427',
+      capacityAdults: 2,
+      capacityChildren: 1,
+      hasBreakfast: true,
+      hasFreeCancellation: true,
+      availableRooms: 10,
+      pricePerNight: '16500.00',
+    },
+    {
+      name: 'Люкс с видом на площадь Искусств',
+      imageUrl: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461',
+      capacityAdults: 2,
+      capacityChildren: 2,
+      hasBreakfast: true,
+      hasFreeCancellation: true,
+      availableRooms: 5,
+      pricePerNight: '28000.00',
+    },
+  ],
+  'Hyatt Regency Ekaterinburg': [
+    {
+      name: 'Стандарт King',
+      imageUrl: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304',
+      capacityAdults: 2,
+      capacityChildren: 1,
+      hasBreakfast: false,
+      hasFreeCancellation: true,
+      availableRooms: 20,
+      pricePerNight: '8900.00',
+    },
+    {
+      name: 'Клубный номер с завтраком',
+      imageUrl: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39',
+      capacityAdults: 2,
+      capacityChildren: 1,
+      hasBreakfast: true,
+      hasFreeCancellation: true,
+      availableRooms: 15,
+      pricePerNight: '11500.00',
+    },
+    {
+      name: 'Представительский люкс',
+      imageUrl: 'https://images.unsplash.com/photo-1591088398332-8a7791972843',
+      capacityAdults: 2,
+      capacityChildren: 2,
+      hasBreakfast: true,
+      hasFreeCancellation: true,
+      availableRooms: 10,
+      pricePerNight: '19000.00',
+    },
+  ],
 };
 
 async function seed() {
@@ -193,6 +257,7 @@ async function seed() {
   const initialHotels = [
     {
       name: 'Radisson Blu Resort & Congress Centre',
+      city: 'Сочи',
       stars: 5,
       locationTag: 'Первая линия, 100 м до моря',
       imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
@@ -203,6 +268,7 @@ async function seed() {
     },
     {
       name: 'Grand Hotel Polyana',
+      city: 'Сочи',
       stars: 5,
       locationTag: 'Красная Поляна, у подъемников',
       imageUrl: 'https://images.unsplash.com/photo-1582719508461-905c673771fd',
@@ -213,6 +279,7 @@ async function seed() {
     },
     {
       name: 'Cosmos Moscow Hotel',
+      city: 'Москва',
       stars: 3,
       locationTag: 'ВДНХ, 200 м до метро',
       imageUrl: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
@@ -223,6 +290,7 @@ async function seed() {
     },
     {
       name: 'Marriott Krasnaya Polyana',
+      city: 'Сочи',
       stars: 5,
       locationTag: 'Центр курорта Горки Город',
       imageUrl: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb',
@@ -233,6 +301,7 @@ async function seed() {
     },
     {
       name: 'Bridge Resort Sochi',
+      city: 'Сочи',
       stars: 4,
       locationTag: 'Имеретинская низменность, 300 м до моря',
       imageUrl: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d',
@@ -240,6 +309,28 @@ async function seed() {
       hasFreeCancellation: true,
       availableRooms: 40,
       pricePerNight: '7800.00',
+    },
+    {
+      name: 'Grand Hotel Europe',
+      city: 'Санкт-Петербург',
+      stars: 5,
+      locationTag: 'Невский проспект, 200 м до Эрмитажа',
+      imageUrl: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa',
+      hasBreakfast: true,
+      hasFreeCancellation: true,
+      availableRooms: 30,
+      pricePerNight: '15000.00',
+    },
+    {
+      name: 'Hyatt Regency Ekaterinburg',
+      city: 'Екатеринбург',
+      stars: 5,
+      locationTag: 'Набережная Рабочей Молодёжи, центр',
+      imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+      hasBreakfast: true,
+      hasFreeCancellation: true,
+      availableRooms: 45,
+      pricePerNight: '8900.00',
     },
   ];
 
@@ -252,6 +343,7 @@ async function seed() {
         .onConflictDoUpdate({
           target: hotels.name,
           set: {
+            city: hotel.city,
             stars: hotel.stars,
             locationTag: hotel.locationTag,
             imageUrl: hotel.imageUrl,
