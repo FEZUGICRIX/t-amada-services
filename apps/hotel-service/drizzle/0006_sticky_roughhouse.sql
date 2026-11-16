@@ -1,0 +1,1 @@
+ALTER TABLE "hotels" ADD COLUMN "city" varchar(100) DEFAULT 'Сочи' NOT NULL;

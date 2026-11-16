@@ -14,6 +14,12 @@ export class HotelResponseDto {
   name: string;
 
   @ApiProperty({
+    example: 'Сочи',
+    description: 'City where the hotel is located',
+  })
+  city: string;
+
+  @ApiProperty({
     example: 5,
     minimum: 1,
     maximum: 5,

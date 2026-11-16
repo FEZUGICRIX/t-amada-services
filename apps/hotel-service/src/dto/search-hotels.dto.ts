@@ -14,7 +14,7 @@ import {
 
 export class SearchHotelsDto {
   @ApiPropertyOptional({
-    description: 'City or location of the hotel (searched in locationTag or name)',
+    description: 'City where the hotel is located',
     example: 'Сочи',
   })
   @IsOptional()
