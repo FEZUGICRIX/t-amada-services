@@ -2,12 +2,13 @@ import { ConflictException, Inject, Injectable, NotFoundException } from '@nestj
 import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
 import { BookingStatus, HealthResponseDto } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
-import { hotelBookings, hotels } from './db/schema';
+import { hotelBookings, hotelRooms, hotels } from './db/schema';
 import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
+import { HotelRoomResponseDto } from './dto/hotel-room-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
 
 @Injectable()
@@ -84,29 +85,65 @@ export class AppService {
     return selectQuery;
   }
 
-  async bookHotel(dto: CreateBookingDto): Promise<BookingResponseDto> {
-    return this.db.transaction(async (tx) => {
-      const [hotel] = await tx.select().from(hotels).where(eq(hotels.id, dto.resourceId)).limit(1);
+  async getHotelRooms(hotelId: string): Promise<HotelRoomResponseDto[]> {
+    const [hotel] = await this.db
+      .select({ id: hotels.id })
+      .from(hotels)
+      .where(eq(hotels.id, hotelId))
+      .limit(1);
 
-      if (!hotel) {
-        throw new NotFoundException('Hotel not found');
+    if (!hotel) {
+      throw new NotFoundException('Hotel not found');
+    }
+
+    return this.db
+      .select({
+        id: hotelRooms.id,
+        hotelId: hotelRooms.hotelId,
+        name: hotelRooms.name,
+        imageUrl: hotelRooms.imageUrl,
+        capacityAdults: hotelRooms.capacityAdults,
+        capacityChildren: hotelRooms.capacityChildren,
+        hasBreakfast: hotelRooms.hasBreakfast,
+        hasFreeCancellation: hotelRooms.hasFreeCancellation,
+        availableRooms: hotelRooms.availableRooms,
+        pricePerNight: hotelRooms.pricePerNight,
+      })
+      .from(hotelRooms)
+      .where(and(eq(hotelRooms.hotelId, hotelId), gt(hotelRooms.availableRooms, 0)));
+  }
+
+  async bookHotel(dto: CreateBookingDto): Promise<BookingResponseDto> {
+    const roomsCount = dto.roomsCount ?? 1;
+
+    return this.db.transaction(async (tx) => {
+      const [room] = await tx
+        .select()
+        .from(hotelRooms)
+        .where(eq(hotelRooms.id, dto.resourceId))
+        .limit(1);
+
+      if (!room) {
+        throw new NotFoundException('Hotel room not found');
       }
 
-      if (hotel.availableRooms <= 0) {
-        throw new ConflictException('Hotel room is already occupied or unavailable');
+      if (room.availableRooms < roomsCount) {
+        throw new ConflictException('Not enough available rooms');
       }
 
       await tx
-        .update(hotels)
+        .update(hotelRooms)
         .set({
-          availableRooms: sql`${hotels.availableRooms} - 1`,
+          availableRooms: sql`${hotelRooms.availableRooms} - ${roomsCount}`,
         })
-        .where(eq(hotels.id, dto.resourceId));
+        .where(eq(hotelRooms.id, dto.resourceId));
 
       const [booking] = await tx
         .insert(hotelBookings)
         .values({
-          hotelId: dto.resourceId,
+          hotelId: room.hotelId,
+          roomId: room.id,
+          roomsCount,
           bookingReference: dto.bookingReference,
           status: BookingStatus.CONFIRMED,
         })
@@ -115,6 +152,8 @@ export class AppService {
       return {
         id: booking.id,
         bookingReference: booking.bookingReference,
+        roomId: booking.roomId!,
+        roomsCount: booking.roomsCount,
         status: booking.status,
         createdAt: booking.createdAt,
       };
@@ -141,12 +180,24 @@ export class AppService {
         };
       }
 
-      await tx
-        .update(hotels)
-        .set({
-          availableRooms: sql`${hotels.availableRooms} + 1`,
-        })
-        .where(eq(hotels.id, booking.hotelId));
+      const restoreCount = booking.roomsCount ?? 1;
+
+      if (booking.roomId) {
+        await tx
+          .update(hotelRooms)
+          .set({
+            availableRooms: sql`${hotelRooms.availableRooms} + ${restoreCount}`,
+          })
+          .where(eq(hotelRooms.id, booking.roomId));
+      } else if (booking.hotelId) {
+        // Legacy fallback: restore to hotel-level counter
+        await tx
+          .update(hotels)
+          .set({
+            availableRooms: sql`${hotels.availableRooms} + ${restoreCount}`,
+          })
+          .where(eq(hotels.id, booking.hotelId));
+      }
 
       await tx
         .update(hotelBookings)

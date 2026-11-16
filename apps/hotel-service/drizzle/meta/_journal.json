@@ -29,6 +29,20 @@
       "when": 1793637661180,
       "tag": "0003_keen_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794827772244,
+      "tag": "0004_steady_lockheed",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794830932941,
+      "tag": "0005_strong_tusk",
+      "breakpoints": true
     }
   ]
 }

@@ -32,12 +32,27 @@ export const hotels = pgTable('hotels', {
   pricePerNight: numeric('price_per_night', { precision: 10, scale: 2 }).notNull(),
 });
 
-export const hotelBookings = pgTable('hotel_bookings', {
+export const hotelRooms = pgTable('hotel_rooms', {
   id: uuid('id').defaultRandom().primaryKey(),
-  bookingReference: varchar('booking_reference', { length: 100 }).notNull(),
   hotelId: uuid('hotel_id')
     .notNull()
     .references(() => hotels.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 255 }).notNull(),
+  capacityAdults: integer('capacity_adults').notNull().default(2),
+  capacityChildren: integer('capacity_children').notNull().default(1),
+  hasBreakfast: boolean('has_breakfast').notNull().default(false),
+  hasFreeCancellation: boolean('has_free_cancellation').notNull().default(false),
+  imageUrl: varchar('image_url', { length: 500 }),
+  availableRooms: integer('available_rooms').notNull(),
+  pricePerNight: numeric('price_per_night', { precision: 10, scale: 2 }).notNull(),
+});
+
+export const hotelBookings = pgTable('hotel_bookings', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  bookingReference: varchar('booking_reference', { length: 100 }).notNull(),
+  hotelId: uuid('hotel_id').references(() => hotels.id, { onDelete: 'cascade' }),
+  roomId: uuid('room_id').references(() => hotelRooms.id, { onDelete: 'cascade' }),
+  roomsCount: integer('rooms_count').notNull().default(1),
   status: hotelBookingStatusEnum('status')
     .$type<BookingStatus>()
     .default('PENDING' as BookingStatus)
@@ -46,6 +61,15 @@ export const hotelBookings = pgTable('hotel_bookings', {
 });
 
 export const hotelsRelations = relations(hotels, ({ many }) => ({
+  rooms: many(hotelRooms),
+  bookings: many(hotelBookings),
+}));
+
+export const hotelRoomsRelations = relations(hotelRooms, ({ one, many }) => ({
+  hotel: one(hotels, {
+    fields: [hotelRooms.hotelId],
+    references: [hotels.id],
+  }),
   bookings: many(hotelBookings),
 }));
 
@@ -54,9 +78,15 @@ export const hotelBookingsRelations = relations(hotelBookings, ({ one }) => ({
     fields: [hotelBookings.hotelId],
     references: [hotels.id],
   }),
+  room: one(hotelRooms, {
+    fields: [hotelBookings.roomId],
+    references: [hotelRooms.id],
+  }),
 }));
 
 export type Hotel = typeof hotels.$inferSelect;
 export type NewHotel = typeof hotels.$inferInsert;
+export type HotelRoom = typeof hotelRooms.$inferSelect;
+export type NewHotelRoom = typeof hotelRooms.$inferInsert;
 export type HotelBooking = typeof hotelBookings.$inferSelect;
 export type NewHotelBooking = typeof hotelBookings.$inferInsert;
