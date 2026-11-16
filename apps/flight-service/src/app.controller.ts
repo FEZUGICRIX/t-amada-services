@@ -5,14 +5,18 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { AppService, HealthResponseDto } from './app.service';
+import { HealthResponseDto } from '@t-amada/common';
+import { AppService } from './app.service';
 import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
+import { CityResponseDto } from './dto/city-response.dto';
 import { BookFlightDto } from './dto/create-booking.dto';
 import { FlightResponseDto } from './dto/flight-response.dto';
+import { SearchCitiesDto } from './dto/search-cities.dto';
 import { SearchFlightsDto } from './dto/search-flights.dto';
 
 @Controller()
@@ -25,6 +29,19 @@ export class AppController {
   @ApiOkResponse({ type: HealthResponseDto, description: 'Service health status' })
   getHealth(): HealthResponseDto {
     return this.appService.getHealth();
+  }
+
+  @Get('cities')
+  @ApiTags('Flights')
+  @ApiOperation({
+    summary: 'Get available flight cities directory and autocomplete suggestions',
+    description:
+      'Returns a flat list of unique departure and arrival cities, prioritizing popular destinations (Moscow, Yekaterinburg, Saint Petersburg, Sochi) when query is empty.',
+  })
+  @ApiOkResponse({ type: [CityResponseDto], description: 'Flat list of available cities' })
+  @ApiBadRequestResponse({ description: 'DTO validation error (400)' })
+  getCities(@Query() query: SearchCitiesDto): Promise<CityResponseDto[]> {
+    return this.appService.getCities(query);
   }
 
   @Get('search')

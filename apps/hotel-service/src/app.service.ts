@@ -1,7 +1,6 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
 import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
-import { BookingStatus } from '@t-amada/common';
+import { BookingStatus, HealthResponseDto } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { hotelBookings, hotels } from './db/schema';
 import { BookingResponseDto } from './dto/booking-response.dto';
@@ -10,17 +9,6 @@ import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
-
-export class HealthResponseDto {
-  @ApiProperty({ example: 'ok', description: 'Health check status' })
-  status: 'ok';
-
-  @ApiProperty({ example: 'hotel-service', description: 'Microservice name' })
-  service: string;
-
-  @ApiProperty({ example: '2026-11-02T16:30:00.000Z', description: 'Current server ISO timestamp' })
-  timestamp: string;
-}
 
 @Injectable()
 export class AppService {

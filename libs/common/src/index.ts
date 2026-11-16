@@ -1,4 +1,5 @@
 export * from './dto/booking.dto';
+export * from './dto/health-response.dto';
 export * from './enums';
 export * from './filters/error-response.dto';
 export * from './filters/http-exception.filter';
