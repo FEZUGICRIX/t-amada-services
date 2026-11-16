@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiConflictResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { HealthResponseDto } from '@t-amada/common';
@@ -14,6 +15,7 @@ import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
+import { HotelRoomResponseDto } from './dto/hotel-room-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
 
 @Controller()
@@ -36,16 +38,31 @@ export class AppController {
     return this.appService.searchHotels(query);
   }
 
+  @Get(':id/rooms')
+  @ApiTags('Hotels')
+  @ApiOperation({ summary: 'Get available room types for a hotel' })
+  @ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Hotel UUID' })
+  @ApiOkResponse({
+    type: [HotelRoomResponseDto],
+    description: 'List of available room types for the hotel',
+  })
+  @ApiNotFoundResponse({ description: 'Hotel not found (404)' })
+  async getHotelRooms(
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<HotelRoomResponseDto[]> {
+    return this.appService.getHotelRooms(id);
+  }
+
   @Post('book')
   @ApiTags('Bookings')
-  @ApiOperation({ summary: 'Resource booking (forward Saga step)' })
+  @ApiOperation({ summary: 'Book a specific room type (forward Saga step)' })
   @ApiOkResponse({
     type: BookingResponseDto,
     description: 'Booking successfully created (flat object)',
   })
   @ApiBadRequestResponse({ description: 'DTO validation error (400)' })
-  @ApiNotFoundResponse({ description: 'Resource not found (404)' })
-  @ApiConflictResponse({ description: 'Resource unavailable / no rooms left (409)' })
+  @ApiNotFoundResponse({ description: 'Room type not found (404)' })
+  @ApiConflictResponse({ description: 'Not enough available rooms (409)' })
   async book(@Body() dto: CreateBookingDto): Promise<BookingResponseDto> {
     return this.appService.bookHotel(dto);
   }
