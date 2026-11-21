@@ -27,6 +27,18 @@ export class BookingResponseDto {
   roomsCount: number;
 
   @ApiProperty({
+    example: '2026-11-20',
+    description: 'Check-in date (YYYY-MM-DD)',
+  })
+  checkIn: string;
+
+  @ApiProperty({
+    example: '2026-11-25',
+    description: 'Check-out date (YYYY-MM-DD)',
+  })
+  checkOut: string;
+
+  @ApiProperty({
     enum: BookingStatus,
     example: BookingStatus.CONFIRMED,
     description: 'Booking status',

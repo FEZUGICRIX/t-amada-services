@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
 
 export class CreateBookingDto {
   @ApiProperty({
@@ -29,6 +29,24 @@ export class CreateBookingDto {
   @IsInt()
   @Min(1)
   roomsCount?: number;
-}
 
-export class BookHotelDto extends CreateBookingDto {}
+  @ApiProperty({
+    example: '2026-11-20',
+    description: 'Check-in date (YYYY-MM-DD)',
+  })
+  @IsNotEmpty({ message: 'checkIn is required' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'checkIn must be in YYYY-MM-DD format',
+  })
+  checkIn: string;
+
+  @ApiProperty({
+    example: '2026-11-25',
+    description: 'Check-out date (YYYY-MM-DD)',
+  })
+  @IsNotEmpty({ message: 'checkOut is required' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'checkOut must be in YYYY-MM-DD format',
+  })
+  checkOut: string;
+}

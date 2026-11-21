@@ -3,12 +3,13 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsDateString,
   IsIn,
   IsInt,
-  IsISO8601,
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Min,
 } from 'class-validator';
 
@@ -22,20 +23,26 @@ export class SearchHotelsDto {
   city?: string;
 
   @ApiPropertyOptional({
-    description: 'Check-in date in ISO 8601 format (e.g. 2026-11-10)',
-    example: '2026-11-10',
+    description: 'Check-in date (YYYY-MM-DD)',
+    example: '2026-11-20',
   })
   @IsOptional()
-  @IsISO8601()
-  checkInDate?: string;
+  @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'checkIn must be in YYYY-MM-DD format',
+  })
+  checkIn?: string;
 
   @ApiPropertyOptional({
-    description: 'Check-out date in ISO 8601 format (e.g. 2026-11-15)',
-    example: '2026-11-15',
+    description: 'Check-out date (YYYY-MM-DD)',
+    example: '2026-11-25',
   })
   @IsOptional()
-  @IsISO8601()
-  checkOutDate?: string;
+  @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
+    message: 'checkOut must be in YYYY-MM-DD format',
+  })
+  checkOut?: string;
 
   @ApiPropertyOptional({
     description: 'Hotel star ratings (e.g. 4,5 or ?stars=4&stars=5)',
@@ -135,7 +142,7 @@ export class SearchHotelsDto {
   minRooms?: number;
 
   @ApiPropertyOptional({
-    description: 'Maximum price per night (legacy parameter alias for maxPrice)',
+    description: 'Maximum price per night (legacy alias for maxPrice)',
     example: 15000,
   })
   @IsOptional()

@@ -50,6 +50,13 @@
       "when": 1794851205596,
       "tag": "0006_sticky_roughhouse",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795256319919,
+      "tag": "0007_cooing_wendigo",
+      "breakpoints": true
     }
   ]
 }

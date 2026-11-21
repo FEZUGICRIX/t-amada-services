@@ -54,6 +54,8 @@ export const hotelBookings = pgTable('hotel_bookings', {
   hotelId: uuid('hotel_id').references(() => hotels.id, { onDelete: 'cascade' }),
   roomId: uuid('room_id').references(() => hotelRooms.id, { onDelete: 'cascade' }),
   roomsCount: integer('rooms_count').notNull().default(1),
+  checkIn: varchar('check_in', { length: 30 }),
+  checkOut: varchar('check_out', { length: 30 }),
   status: hotelBookingStatusEnum('status')
     .$type<BookingStatus>()
     .default('PENDING' as BookingStatus)

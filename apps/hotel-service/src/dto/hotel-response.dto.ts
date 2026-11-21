@@ -62,4 +62,10 @@ export class HotelResponseDto {
     description: 'Price per night in currency units',
   })
   pricePerNight: string;
+
+  @ApiPropertyOptional({
+    example: '47500.00',
+    description: 'Calculated total price for the stay period',
+  })
+  totalPrice?: string;
 }

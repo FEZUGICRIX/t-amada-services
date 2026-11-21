@@ -14,6 +14,7 @@ import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { GetHotelRoomsDto } from './dto/get-hotel-rooms.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
 import { HotelRoomResponseDto } from './dto/hotel-room-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
@@ -49,8 +50,9 @@ export class AppController {
   @ApiNotFoundResponse({ description: 'Hotel not found (404)' })
   async getHotelRooms(
     @Param('id', new ParseUUIDPipe()) id: string,
+    @Query() query: GetHotelRoomsDto,
   ): Promise<HotelRoomResponseDto[]> {
-    return this.appService.getHotelRooms(id);
+    return this.appService.getHotelRooms(id, query);
   }
 
   @Post('book')

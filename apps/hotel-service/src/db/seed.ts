@@ -368,9 +368,7 @@ async function seed() {
         const [existing] = await db
           .select({ id: hotelRooms.id })
           .from(hotelRooms)
-          .where(
-            eq(hotelRooms.hotelId, hotel.id),
-          )
+          .where(eq(hotelRooms.hotelId, hotel.id))
           .limit(1);
 
         // If hotel already has rooms — delete and re-create for idempotency

@@ -1,4 +1,10 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, sql, SQL } from 'drizzle-orm';
 import { BookingStatus, HealthResponseDto } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
@@ -7,6 +13,7 @@ import { BookingResponseDto } from './dto/booking-response.dto';
 import { CancelBookingResponseDto } from './dto/cancel-booking-response.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
+import { GetHotelRoomsDto } from './dto/get-hotel-rooms.dto';
 import { HotelResponseDto } from './dto/hotel-response.dto';
 import { HotelRoomResponseDto } from './dto/hotel-room-response.dto';
 import { SearchHotelsDto } from './dto/search-hotels.dto';
@@ -24,6 +31,8 @@ export class AppService {
   }
 
   async searchHotels(query: SearchHotelsDto): Promise<HotelResponseDto[]> {
+    const nightsCount = this.resolveNights(query.checkIn, query.checkOut);
+
     const conditions: SQL[] = [gt(hotels.availableRooms, 0)];
 
     if (query.minRooms !== undefined) {
@@ -82,10 +91,17 @@ export class AppService {
       selectQuery = selectQuery.orderBy(desc(hotels.pricePerNight)) as typeof selectQuery;
     }
 
-    return selectQuery;
+    const results = await selectQuery;
+
+    if (nightsCount === undefined) return results;
+
+    return results.map((hotel) => ({
+      ...hotel,
+      totalPrice: (Number(hotel.pricePerNight) * nightsCount).toFixed(2),
+    }));
   }
 
-  async getHotelRooms(hotelId: string): Promise<HotelRoomResponseDto[]> {
+  async getHotelRooms(hotelId: string, query?: GetHotelRoomsDto): Promise<HotelRoomResponseDto[]> {
     const [hotel] = await this.db
       .select({ id: hotels.id })
       .from(hotels)
@@ -96,7 +112,9 @@ export class AppService {
       throw new NotFoundException('Hotel not found');
     }
 
-    return this.db
+    const nightsCount = this.resolveNights(query?.checkIn, query?.checkOut);
+
+    const rooms = await this.db
       .select({
         id: hotelRooms.id,
         hotelId: hotelRooms.hotelId,
@@ -111,10 +129,19 @@ export class AppService {
       })
       .from(hotelRooms)
       .where(and(eq(hotelRooms.hotelId, hotelId), gt(hotelRooms.availableRooms, 0)));
+
+    if (nightsCount === undefined) return rooms;
+
+    return rooms.map((room) => ({
+      ...room,
+      totalPrice: (Number(room.pricePerNight) * nightsCount).toFixed(2),
+    }));
   }
 
   async bookHotel(dto: CreateBookingDto): Promise<BookingResponseDto> {
     const roomsCount = dto.roomsCount ?? 1;
+
+    this.resolveNights(dto.checkIn, dto.checkOut);
 
     return this.db.transaction(async (tx) => {
       const [room] = await tx
@@ -145,6 +172,8 @@ export class AppService {
           roomId: room.id,
           roomsCount,
           bookingReference: dto.bookingReference,
+          checkIn: dto.checkIn,
+          checkOut: dto.checkOut,
           status: BookingStatus.CONFIRMED,
         })
         .returning();
@@ -154,6 +183,8 @@ export class AppService {
         bookingReference: booking.bookingReference,
         roomId: booking.roomId!,
         roomsCount: booking.roomsCount,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
         status: booking.status,
         createdAt: booking.createdAt,
       };
@@ -190,7 +221,6 @@ export class AppService {
           })
           .where(eq(hotelRooms.id, booking.roomId));
       } else if (booking.hotelId) {
-        // Legacy fallback: restore to hotel-level counter
         await tx
           .update(hotels)
           .set({
@@ -212,5 +242,27 @@ export class AppService {
         updatedAt: new Date().toISOString(),
       };
     });
+  }
+
+  private resolveNights(checkIn?: string, checkOut?: string): number | undefined {
+    if (checkIn && checkOut) {
+      const today = new Date().toISOString().slice(0, 10);
+      if (checkIn < today) {
+        throw new BadRequestException('checkIn date cannot be in the past');
+      }
+
+      const inTime = new Date(`${checkIn}T00:00:00Z`).getTime();
+      const outTime = new Date(`${checkOut}T00:00:00Z`).getTime();
+      const nights = Math.round((outTime - inTime) / 86_400_000);
+
+      if (!Number.isFinite(nights) || nights <= 0) {
+        throw new BadRequestException('checkOut must be after checkIn');
+      }
+      return nights;
+    }
+    if (checkIn || checkOut) {
+      throw new BadRequestException('Both checkIn and checkOut must be provided');
+    }
+    return undefined;
   }
 }
