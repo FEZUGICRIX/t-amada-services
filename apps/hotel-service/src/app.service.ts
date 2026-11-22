@@ -55,10 +55,6 @@ export class AppService {
       conditions.push(eq(hotels.hasBreakfast, query.hasBreakfast));
     }
 
-    if (query.hasFreeCancellation !== undefined) {
-      conditions.push(eq(hotels.hasFreeCancellation, query.hasFreeCancellation));
-    }
-
     const minPrice = query.minPrice;
     if (minPrice !== undefined) {
       conditions.push(gte(hotels.pricePerNight, minPrice.toString()));
@@ -73,12 +69,14 @@ export class AppService {
       .select({
         id: hotels.id,
         name: hotels.name,
+        description: hotels.description,
+        address: hotels.address,
         city: hotels.city,
         stars: hotels.stars,
         locationTag: hotels.locationTag,
         imageUrl: hotels.imageUrl,
+        tags: hotels.tags,
         hasBreakfast: hotels.hasBreakfast,
-        hasFreeCancellation: hotels.hasFreeCancellation,
         availableRooms: hotels.availableRooms,
         pricePerNight: hotels.pricePerNight,
       })
@@ -124,6 +122,7 @@ export class AppService {
         capacityChildren: hotelRooms.capacityChildren,
         hasBreakfast: hotelRooms.hasBreakfast,
         hasFreeCancellation: hotelRooms.hasFreeCancellation,
+        tags: hotelRooms.tags,
         availableRooms: hotelRooms.availableRooms,
         pricePerNight: hotelRooms.pricePerNight,
       })

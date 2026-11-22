@@ -80,20 +80,6 @@ export class SearchHotelsDto {
   hasBreakfast?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Filter hotels with free cancellation',
-    example: true,
-  })
-  @IsOptional()
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') return undefined;
-    if (value === 'true' || value === true) return true;
-    if (value === 'false' || value === false) return false;
-    return value;
-  })
-  @IsBoolean()
-  hasFreeCancellation?: boolean;
-
-  @ApiPropertyOptional({
     description: 'Minimum price per night',
     example: 3000,
   })

@@ -13,6 +13,20 @@ export class HotelResponseDto {
   })
   name: string;
 
+  @ApiPropertyOptional({
+    example: 'Премиальный курортный отель на первой береговой линии с собственным пляжем, бассейнами и спа-комплексом.',
+    nullable: true,
+    description: 'Hotel detailed description',
+  })
+  description?: string | null;
+
+  @ApiPropertyOptional({
+    example: 'ул. Голубая, 1А',
+    nullable: true,
+    description: 'Physical address of the hotel',
+  })
+  address?: string | null;
+
   @ApiProperty({
     example: 'Сочи',
     description: 'City where the hotel is located',
@@ -40,16 +54,17 @@ export class HotelResponseDto {
   imageUrl?: string | null;
 
   @ApiProperty({
+    example: ['Бассейн', 'Wi-Fi', 'Первая линия', 'Спа'],
+    type: [String],
+    description: 'List of hotel amenities and features',
+  })
+  tags: string[];
+
+  @ApiProperty({
     example: true,
     description: 'Whether breakfast is included in room price',
   })
   hasBreakfast: boolean;
-
-  @ApiProperty({
-    example: true,
-    description: 'Whether booking offers free cancellation',
-  })
-  hasFreeCancellation: boolean;
 
   @ApiProperty({
     example: 50,
