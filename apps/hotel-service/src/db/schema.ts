@@ -7,6 +7,8 @@ import {
   timestamp,
   pgEnum,
   boolean,
+  text,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { BookingStatus } from '@t-amada/common';
@@ -23,12 +25,14 @@ export const hotelBookingStatusEnum = pgEnum('hotel_booking_status', [
 export const hotels = pgTable('hotels', {
   id: uuid('id').defaultRandom().primaryKey(),
   name: varchar('name', { length: 255 }).notNull().unique(),
+  description: text('description'),
+  address: varchar('address', { length: 255 }),
   city: varchar('city', { length: 100 }).notNull().default('Сочи'),
   stars: integer('stars').notNull().default(3),
   locationTag: varchar('location_tag', { length: 255 }),
   imageUrl: varchar('image_url', { length: 500 }),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
   hasBreakfast: boolean('has_breakfast').notNull().default(false),
-  hasFreeCancellation: boolean('has_free_cancellation').notNull().default(false),
   availableRooms: integer('available_rooms').notNull(),
   pricePerNight: numeric('price_per_night', { precision: 10, scale: 2 }).notNull(),
 });
@@ -44,6 +48,7 @@ export const hotelRooms = pgTable('hotel_rooms', {
   hasBreakfast: boolean('has_breakfast').notNull().default(false),
   hasFreeCancellation: boolean('has_free_cancellation').notNull().default(false),
   imageUrl: varchar('image_url', { length: 500 }),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
   availableRooms: integer('available_rooms').notNull(),
   pricePerNight: numeric('price_per_night', { precision: 10, scale: 2 }).notNull(),
 });

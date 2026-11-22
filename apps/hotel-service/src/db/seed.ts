@@ -12,6 +12,21 @@ interface RoomSeed {
   capacityChildren: number;
   hasBreakfast: boolean;
   hasFreeCancellation: boolean;
+  tags: string[];
+  availableRooms: number;
+  pricePerNight: string;
+}
+
+interface HotelSeed {
+  name: string;
+  description: string;
+  address: string;
+  city: string;
+  stars: number;
+  locationTag: string;
+  imageUrl: string;
+  tags: string[];
+  hasBreakfast: boolean;
   availableRooms: number;
   pricePerNight: string;
 }
@@ -25,6 +40,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: false,
       hasFreeCancellation: false,
+      tags: ['Wi-Fi', 'Кондиционер', 'Двуспальная кровать', 'Душ'],
       availableRooms: 20,
       pricePerNight: '8500.00',
     },
@@ -35,6 +51,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: false,
+      tags: ['Завтрак "шведский стол"', 'Wi-Fi', 'Кондиционер', 'Рабочая зона'],
       availableRooms: 15,
       pricePerNight: '9500.00',
     },
@@ -45,6 +62,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Вид на море', 'Балкон', 'Две комнаты', 'Халаты и тапочки', 'Кофемашина'],
       availableRooms: 15,
       pricePerNight: '14500.00',
     },
@@ -57,6 +75,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 0,
       hasBreakfast: false,
       hasFreeCancellation: false,
+      tags: ['Вид на горы', 'Wi-Fi', 'Мини-бар', 'Сейф'],
       availableRooms: 15,
       pricePerNight: '12000.00',
     },
@@ -67,6 +86,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: false,
+      tags: ['Завтрак включен', 'Вид на горы', 'Балкон', 'Wi-Fi'],
       availableRooms: 10,
       pricePerNight: '14000.00',
     },
@@ -77,6 +97,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Панорамный вид', 'Две спальни', 'Гостиная', 'Камин', 'Джакузи'],
       availableRooms: 10,
       pricePerNight: '22000.00',
     },
@@ -89,6 +110,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 0,
       hasBreakfast: false,
       hasFreeCancellation: true,
+      tags: ['Wi-Fi', 'Телевизор', 'Односпальная кровать'],
       availableRooms: 50,
       pricePerNight: '3500.00',
     },
@@ -99,6 +121,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: false,
       hasFreeCancellation: true,
+      tags: ['Wi-Fi', 'Кондиционер', 'Две раздельные кровати'],
       availableRooms: 40,
       pricePerNight: '4500.00',
     },
@@ -109,6 +132,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Завтрак "шведский стол"', 'Wi-Fi', 'Вид на ВДНХ'],
       availableRooms: 30,
       pricePerNight: '5800.00',
     },
@@ -121,6 +145,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: false,
+      tags: ['Вид на горы', 'King size кровать', 'Мраморная ванная', 'Wi-Fi'],
       availableRooms: 10,
       pricePerNight: '16000.00',
     },
@@ -131,6 +156,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Балкон с видом на горы', 'Гостиная зона', 'Кофемашина', 'Халаты'],
       availableRooms: 8,
       pricePerNight: '25000.00',
     },
@@ -141,6 +167,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Панорамная терраса', 'Сауна', 'Персональный батлер', 'Джакузи'],
       availableRooms: 7,
       pricePerNight: '45000.00',
     },
@@ -153,6 +180,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: false,
       hasFreeCancellation: true,
+      tags: ['Wi-Fi', 'Кондиционер', 'Балкон', 'Двуспальная кровать'],
       availableRooms: 20,
       pricePerNight: '6500.00',
     },
@@ -163,6 +191,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Завтрак включен', 'Балкон', 'Wi-Fi', 'Чайная станция'],
       availableRooms: 10,
       pricePerNight: '7800.00',
     },
@@ -173,6 +202,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Две комнаты', 'Вид на море', 'Халаты', 'Детская кроватка по запросу'],
       availableRooms: 10,
       pricePerNight: '12000.00',
     },
@@ -185,6 +215,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: false,
       hasFreeCancellation: true,
+      tags: ['Исторический интерьер', 'Wi-Fi', 'Королевская кровать', 'Мини-бар'],
       availableRooms: 15,
       pricePerNight: '13000.00',
     },
@@ -195,6 +226,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Завтрак в ресторане', 'Вид на площадь Искусств', 'Мраморная ванна'],
       availableRooms: 10,
       pricePerNight: '16500.00',
     },
@@ -205,6 +237,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Антикварная мебель', 'Вид на площадь Искусств', 'Гостиная', 'Кофемашина'],
       availableRooms: 5,
       pricePerNight: '28000.00',
     },
@@ -217,6 +250,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: false,
       hasFreeCancellation: true,
+      tags: ['King size кровать', 'Панорамные окна', 'Рабочее место', 'Wi-Fi'],
       availableRooms: 20,
       pricePerNight: '8900.00',
     },
@@ -227,6 +261,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 1,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Доступ в Regency Club', 'Завтрак и вечерние коктейли', 'Вид на набережную'],
       availableRooms: 15,
       pricePerNight: '11500.00',
     },
@@ -237,6 +272,7 @@ const roomTemplates: Record<string, RoomSeed[]> = {
       capacityChildren: 2,
       hasBreakfast: true,
       hasFreeCancellation: true,
+      tags: ['Панорамный вид на городской пруд', 'Гостиная', 'Ванная с окном', 'Гардеробная'],
       availableRooms: 10,
       pricePerNight: '19000.00',
     },
@@ -254,81 +290,102 @@ async function seed() {
 
   console.log('🌱 [hotel-service] Seeding initial hotels data...');
 
-  const initialHotels = [
+  const initialHotels: HotelSeed[] = [
     {
       name: 'Radisson Blu Resort & Congress Centre',
+      description:
+        'Роскошный курортный отель на первой линии черноморского побережья с собственным пляжем, открытыми бассейнами и спа-центром Pace Health Club.',
+      address: 'ул. Голубая, 1А',
       city: 'Сочи',
       stars: 5,
       locationTag: 'Первая линия, 100 м до моря',
       imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+      tags: ['Бассейн', 'Спа', 'Первая линия', 'Фитнес-центр', 'Ресторан', 'Парковка'],
       hasBreakfast: true,
-      hasFreeCancellation: true,
       availableRooms: 50,
       pricePerNight: '9500.00',
     },
     {
       name: 'Grand Hotel Polyana',
+      description:
+        'Флагманский отель в живописной долине реки Ачипсе посреди Кавказских гор, окруженный реликтовым лесом, с 50-метровым олимпийским бассейном.',
+      address: 'ул. Ачипсинская, 16',
       city: 'Сочи',
       stars: 5,
       locationTag: 'Красная Поляна, у подъемников',
       imageUrl: 'https://images.unsplash.com/photo-1582719508461-905c673771fd',
+      tags: ['Бассейн', 'Спа', 'Вид на горы', 'Теннисный корт', 'Детский клуб', 'Ресторан'],
       hasBreakfast: true,
-      hasFreeCancellation: false,
       availableRooms: 35,
       pricePerNight: '14000.00',
     },
     {
       name: 'Cosmos Moscow Hotel',
+      description:
+        'Легендарный отель в шаговой доступности от ВДНХ и парка Останкино, предлагающий современные комфортные номера для деловых поездок и отдыха.',
+      address: 'пр-т Мира, 150',
       city: 'Москва',
       stars: 3,
       locationTag: 'ВДНХ, 200 м до метро',
       imageUrl: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4',
+      tags: ['Wi-Fi', 'Метро рядом', 'Конференц-залы', 'Фитнес-центр', 'Ресторан'],
       hasBreakfast: false,
-      hasFreeCancellation: true,
       availableRooms: 120,
       pricePerNight: '4500.00',
     },
     {
       name: 'Marriott Krasnaya Polyana',
+      description:
+        'Пятизвездочный премиальный отель в самом центре круглогодичного горного курорта со прямым выходом к канатной дороге и спа-комплексом Soul Spa.',
+      address: 'наб. Времена Года, 1',
       city: 'Сочи',
       stars: 5,
       locationTag: 'Центр курорта Горки Город',
       imageUrl: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb',
+      tags: ['Спа', 'Ski-in/Ski-out', 'Крытый бассейн', 'Казино', 'Вид на горы', 'Ресторан'],
       hasBreakfast: true,
-      hasFreeCancellation: true,
       availableRooms: 25,
       pricePerNight: '18000.00',
     },
     {
       name: 'Bridge Resort Sochi',
+      description:
+        'Семейный санаторно-курортный комплекс в Имеретинской низменности с комплексом бассейнов, собственным галечным пляжем и развитой анимацией.',
+      address: 'ул. Фигурная, 45',
       city: 'Сочи',
       stars: 4,
       locationTag: 'Имеретинская низменность, 300 м до моря',
       imageUrl: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d',
+      tags: ['Семейный отдых', 'Бассейн', 'Собственный пляж', 'Детская анимация', 'Медицинский центр'],
       hasBreakfast: true,
-      hasFreeCancellation: true,
       availableRooms: 40,
       pricePerNight: '7800.00',
     },
     {
       name: 'Grand Hotel Europe',
+      description:
+        'Старейший гранд-отель Санкт-Петербурга с вековой историей и изысканной архитектурой в стиле ар-нуво рядом с Русским музеем и филармонией.',
+      address: 'ул. Михайловская, 1/7',
       city: 'Санкт-Петербург',
       stars: 5,
       locationTag: 'Невский проспект, 200 м до Эрмитажа',
       imageUrl: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa',
+      tags: ['Историческое здание', 'Ресторан высокой кухни', 'В центре города', 'Консьерж-сервис', 'Спа'],
       hasBreakfast: true,
-      hasFreeCancellation: true,
       availableRooms: 30,
       pricePerNight: '15000.00',
     },
     {
       name: 'Hyatt Regency Ekaterinburg',
+      description:
+        'Премиальный пятизвездочный отель на берегу городского пруда в деловом центре Екатеринбурга с панорамным фитнес-центром The Myst Club.',
+      address: 'ул. Бориса Ельцина, 8',
       city: 'Екатеринбург',
       stars: 5,
       locationTag: 'Набережная Рабочей Молодёжи, центр',
       imageUrl: 'https://images.unsplash.com/photo-1566073771259-6a8506099945',
+      tags: ['Центр города', 'Панорамный вид', 'Бассейн', 'Спа', 'Конференц-залы', 'Ресторан'],
       hasBreakfast: true,
-      hasFreeCancellation: true,
       availableRooms: 45,
       pricePerNight: '8900.00',
     },
@@ -343,12 +400,14 @@ async function seed() {
         .onConflictDoUpdate({
           target: hotels.name,
           set: {
+            description: hotel.description,
+            address: hotel.address,
             city: hotel.city,
             stars: hotel.stars,
             locationTag: hotel.locationTag,
             imageUrl: hotel.imageUrl,
+            tags: hotel.tags,
             hasBreakfast: hotel.hasBreakfast,
-            hasFreeCancellation: hotel.hasFreeCancellation,
             availableRooms: hotel.availableRooms,
             pricePerNight: hotel.pricePerNight,
           },

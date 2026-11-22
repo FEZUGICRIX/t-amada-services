@@ -51,6 +51,13 @@ export class HotelRoomResponseDto {
   hasFreeCancellation: boolean;
 
   @ApiProperty({
+    example: ['Вид на море', 'Двуспальная кровать', 'Балкон'],
+    type: [String],
+    description: 'List of room tags and amenities',
+  })
+  tags: string[];
+
+  @ApiProperty({
     example: 10,
     description: 'Number of available rooms of this type',
   })
