@@ -79,6 +79,7 @@ export class AppService {
         .select()
         .from(vehicles)
         .where(eq(vehicles.id, dto.resourceId))
+        .for('update')
         .limit(1);
 
       if (!vehicle) {
