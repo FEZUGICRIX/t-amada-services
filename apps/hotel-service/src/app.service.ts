@@ -147,6 +147,7 @@ export class AppService {
         .select()
         .from(hotelRooms)
         .where(eq(hotelRooms.id, dto.resourceId))
+        .for('update')
         .limit(1);
 
       if (!room) {
