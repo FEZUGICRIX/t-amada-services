@@ -84,6 +84,26 @@ export class SearchFlightsDto {
   hasBaggage?: boolean;
 
   @ApiPropertyOptional({
+    description: 'Filter by route connection type',
+    enum: ['all', 'direct', 'with-stops'],
+    default: 'all',
+    example: 'direct',
+  })
+  @IsOptional()
+  @IsIn(['all', 'direct', 'with-stops'])
+  stops?: 'all' | 'direct' | 'with-stops' = 'all';
+
+  @ApiPropertyOptional({
+    description: 'Maximum allowed connection stops (e.g. 0 for direct only, 1, 2)',
+    example: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  maxStops?: number;
+
+  @ApiPropertyOptional({
     description: 'Minimum flight price',
     example: 3000,
   })

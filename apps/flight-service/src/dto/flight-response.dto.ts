@@ -1,5 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+export class FlightStopDto {
+  @ApiProperty({ example: 'LED', description: 'IATA airport code of connection' })
+  airport: string;
+
+  @ApiPropertyOptional({ example: 'Санкт-Петербург', description: 'City of connection' })
+  city?: string;
+
+  @ApiProperty({ example: 95, description: 'Waiting duration in minutes' })
+  waitMinutes: number;
+
+  @ApiProperty({ example: 180, description: 'UTC offset of connection airport in minutes' })
+  utcOffsetMinutes: number;
+}
+
 export class FlightResponseDto {
   @ApiProperty({
     example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
@@ -38,14 +52,26 @@ export class FlightResponseDto {
   arrivalCity: string;
 
   @ApiProperty({
+    example: 'SVO',
+    description: 'Departure airport IATA code',
+  })
+  departureAirport: string;
+
+  @ApiProperty({
+    example: 'AER',
+    description: 'Arrival airport IATA code',
+  })
+  arrivalAirport: string;
+
+  @ApiProperty({
     example: '2026-11-10T08:30:00.000Z',
-    description: 'Departure timestamp with timezone',
+    description: 'Departure timestamp with timezone (ISO UTC)',
   })
   departureTime: Date | string;
 
   @ApiProperty({
     example: '2026-11-10T12:30:00.000Z',
-    description: 'Arrival timestamp with timezone',
+    description: 'Arrival timestamp with timezone (ISO UTC)',
   })
   arrivalTime: Date | string;
 
@@ -54,6 +80,42 @@ export class FlightResponseDto {
     description: 'Total flight duration in minutes',
   })
   durationMinutes: number;
+
+  @ApiProperty({
+    example: 180,
+    description: 'Departure airport UTC offset in minutes',
+  })
+  departureUtcOffsetMinutes: number;
+
+  @ApiProperty({
+    example: 180,
+    description: 'Arrival airport UTC offset in minutes',
+  })
+  arrivalUtcOffsetMinutes: number;
+
+  @ApiProperty({
+    example: 0,
+    description: 'Calendar day shift between local departure and arrival dates',
+  })
+  arrivalDayOffset: number;
+
+  @ApiProperty({
+    example: 0,
+    description: 'Number of connection stops (0 for direct flights)',
+  })
+  stopsCount: number;
+
+  @ApiProperty({
+    type: [FlightStopDto],
+    description: 'Connection stops list',
+  })
+  stops: FlightStopDto[];
+
+  @ApiProperty({
+    example: [240],
+    description: 'Duration of each flight leg in minutes (length === stopsCount + 1)',
+  })
+  segmentMinutes: number[];
 
   @ApiProperty({
     example: true,
