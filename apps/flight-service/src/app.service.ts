@@ -1,5 +1,5 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, ilike, inArray, lte, or, sql, SQL } from 'drizzle-orm';
 import { BookingStatus, HealthResponseDto } from '@t-amada/common';
 import { DRIZZLE, DrizzleDB } from './db/database.module';
 import { flightBookings, flights } from './db/schema';
@@ -73,11 +73,27 @@ export class AppService {
     }
 
     if (query.origin) {
-      conditions.push(ilike(flights.departureCity, `%${query.origin.trim()}%`));
+      const pattern = `%${query.origin.trim()}%`;
+      conditions.push(
+        or(ilike(flights.departureCity, pattern), ilike(flights.departureAirport, pattern))!,
+      );
     }
 
     if (query.destination) {
-      conditions.push(ilike(flights.arrivalCity, `%${query.destination.trim()}%`));
+      const pattern = `%${query.destination.trim()}%`;
+      conditions.push(
+        or(ilike(flights.arrivalCity, pattern), ilike(flights.arrivalAirport, pattern))!,
+      );
+    }
+
+    if (query.stops === 'direct') {
+      conditions.push(eq(flights.stopsCount, 0));
+    } else if (query.stops === 'with-stops') {
+      conditions.push(gt(flights.stopsCount, 0));
+    }
+
+    if (query.maxStops !== undefined) {
+      conditions.push(lte(flights.stopsCount, query.maxStops));
     }
 
     if (query.date) {
@@ -138,8 +154,15 @@ export class AppService {
         airlineName: flights.airlineName,
         departureCity: flights.departureCity,
         arrivalCity: flights.arrivalCity,
+        departureAirport: flights.departureAirport,
+        arrivalAirport: flights.arrivalAirport,
         departureTime: flights.departureTime,
         arrivalTime: flights.arrivalTime,
+        departureUtcOffsetMinutes: flights.departureUtcOffsetMinutes,
+        arrivalUtcOffsetMinutes: flights.arrivalUtcOffsetMinutes,
+        stopsCount: flights.stopsCount,
+        stops: flights.stops,
+        segmentMinutes: flights.segmentMinutes,
         hasBaggage: flights.hasBaggage,
         baggageWeightKg: flights.baggageWeightKg,
         flightClass: flights.flightClass,
@@ -152,9 +175,20 @@ export class AppService {
       .orderBy(orderByClause);
 
     return results.map((flight) => {
-      const durationMinutes = Math.round(
-        (new Date(flight.arrivalTime).getTime() - new Date(flight.departureTime).getTime()) / 60000,
-      );
+      const departureDate = new Date(flight.departureTime);
+      const arrivalDate = new Date(flight.arrivalTime);
+      const durationMinutes = Math.round((arrivalDate.getTime() - departureDate.getTime()) / 60000);
+
+      const depLocalMs = departureDate.getTime() + flight.departureUtcOffsetMinutes * 60_000;
+      const arrLocalMs = arrivalDate.getTime() + flight.arrivalUtcOffsetMinutes * 60_000;
+      const depCalendarDay = Math.floor(depLocalMs / 86_400_000);
+      const arrCalendarDay = Math.floor(arrLocalMs / 86_400_000);
+      const arrivalDayOffset = Math.max(0, arrCalendarDay - depCalendarDay);
+
+      const segmentMinutes =
+        flight.stopsCount === 0 && (!flight.segmentMinutes || flight.segmentMinutes.length === 0)
+          ? [durationMinutes]
+          : (flight.segmentMinutes ?? []);
 
       const basePrice = Number(flight.price);
       const totalPriceValue = adultsCount * basePrice + childrenCount * basePrice * 0.7;
@@ -163,6 +197,9 @@ export class AppService {
       return {
         ...flight,
         durationMinutes,
+        arrivalDayOffset,
+        segmentMinutes,
+        stops: flight.stops ?? [],
         totalPrice,
       };
     });
